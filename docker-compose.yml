@@ -1,0 +1,11 @@
+services:
+  chatbot:
+    build: .
+    container_name: bot-whatsapp
+    ports:
+      - "8000:8000"  # Porta PC : Porta run.py
+    volumes:
+      - .:/app       # Sincroniza a pasta
+    restart: always
+    env_file:
+      - .env
