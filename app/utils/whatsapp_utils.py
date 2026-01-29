@@ -2,11 +2,11 @@ import logging
 from flask import current_app, jsonify
 import json
 import requests
-import google.generativeai as genai
-
-# from app.services.openai_service import generate_response
+from groq import Groq
 import re
 
+from app.extensions import db
+from app.models import ServiceRequest
 
 def log_http_response(response):
     logging.info(f"Status: {response.status_code}")
@@ -24,18 +24,6 @@ def get_text_message_input(recipient, text):
             "text": {"preview_url": False, "body": text},
         }
     )
-
-"""
-def generate_response(response):
-    now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    num1 = random.randint(1, 1000)
-    num2 = random.randint(1, 1000)
-    soma = num1 + num2
-
-    return f"{dt_string} -> {num1} + {num2} = {soma}"
-"""
 
 def send_message(data):
     headers = {
@@ -64,64 +52,68 @@ def send_message(data):
         return response
 
 def extract_information(message_body, user_name):
-    api_key = current_app.config["GEMINI_API_KEY"]
+    """
+    Usa a Groq (Llama 3) para extrair a intenção e gerar a resposta.
+    """
+    api_key = current_app.config.get("GROQ_API_KEY")
     if not api_key:
-        logging.error("❌ ERRO CRÍTICO: GEMINI_API_KEY não encontrada nas configurações!")
+        logging.error("GROQ_API_KEY não configurada.")
         return None
-    else:
-        # Imprime os primeiros 5 caracteres só para confirmar que carregou algo
-        logging.info(f"🔑 API Key carregada: {api_key[:5]}...")
-    
-    genai.configure(api_key=api_key)
-    
-    model = genai.GenerativeModel("gemini-flash-latest")
+
+    client = Groq(api_key=api_key)
     
     prompt = f"""
-    És um assistente de CRM de uma contabilidade experiente e prestável.
+    You are an experienced and helpful CRM accounting assistant.
     
-    1. Analisa a mensagem do cliente: "{message_body}"
-    2. Extrai a intenção ("alterar_nif" ou "outro") e o NIF se existir.
-    3. Gera uma resposta curta, educada e profissional para o cliente.
-       - INCLUI SEMPRE o nome "{user_name}" na resposta para ser mais pessoal.
-       - Se for "alterar_nif" com NIF válido: Confirma que a alteração foi efetuada com sucesso na ficha de cliente.
-       - Se for "alterar_nif" sem NIF: Pede o número educadamente.
-       - Se for "outro": Diz que um contabilista vai analisar o pedido.
+    Your Goal:
+    1. Analyze the client's message: "{message_body}"
+    2. Detect the language of the message (e.g., Portuguese, English, Spanish).
+    3. Extract the intent and the Tax ID (NIF) if present.
+    4. Generate a response IN THE SAME LANGUAGE as the client's message.
 
-    INSTRUÇÕES DE IDIOMA:
-    1. Identificar o idioma em que o cliente escreveu (Português, Inglês, Espanhol, Francês, etc.).
-    2. A resposta gerada no campo "message_to_customer" DEVE ser obrigatoriamente nesse mesmo idioma.
-    3. Se o idioma for ambíguo, usa Português de Portugal como padrão.
-    
-    O cliente chama-se: "{user_name}".
-    Mensagem do cliente: "{message_body}"
-    
-    Responde APENAS com um JSON neste formato:
+    Business Rules:
+    - ALWAYS include the client's name "{user_name}" in the response to be personal.
+    - Intent "alterar_nif" (Change Tax ID):
+        - If valid NIF found: Confirm the update to {user_name}'s file was successful.
+        - If NO NIF found: Politely ask for the new number.
+    - Intent "outro" (Other):
+        - State that an accountant will analyze the request manually.
+
+    CRITICAL LANGUAGE INSTRUCTION:
+    - If the user speaks English, the "response_draft" MUST be in English.
+    - If the user speaks Portuguese, the "response_draft" MUST be in Portuguese.
+    - Match the user's language exactly.
+
+    Output JSON Format:
     {{
-        "intent": "alterar_nif" ou "outro",
-        "nif": "número extraído ou null se não houver",
-        "confidence": "alto", "medio" ou "baixo",
-        "response_draft": "O texto da resposta sugerida aqui..."
+        "detected_language": "en, pt, es...",
+        "intent": "alterar_nif" or "outro",
+        "field_value": "extracted value or null",
+        "response_draft": "The generated response text in the DETECTED LANGUAGE"
     }}
-
-    Mensagem do cliente: "{message_body}"
     """
     
     try:
-        response = model.generate_content(prompt)
-        
-        logging.info(f"🤖 Resposta Bruta do Gemini: {response.text}")
-        
-        text_response = response.text.strip().replace('```json', '').replace('```', '')
-        data = json.loads(text_response)
-        
-        logging.info(f"✅ JSON Parseado: {data}")
-        
-        return data
-    except Exception as e:
-        logging.error(f"❌ ERRO no extract_information: {str(e)}")
+        completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": message_body}
+            ],
+            model="llama-3.3-70b-versatile", # Modelo muito inteligente e gratuito
+            
+            # Isto obriga o modelo a responder APENAS JSON (Super Importante)
+            response_format={"type": "json_object"}, 
+            
+            temperature=0
+        )
 
-        if 'response' in locals() and hasattr(response, 'prompt_feedback'):
-            logging.error(f"⚠️ Feedback de Segurança: {response.prompt_feedback}")
+        # Processar a resposta
+        response_content = completion.choices[0].message.content
+        data = json.loads(response_content)
+        return data
+
+    except Exception as e:
+        logging.error(f"Erro na Groq: {e}")
         return None
 
 def process_text_for_whatsapp(text):
@@ -144,26 +136,40 @@ def process_text_for_whatsapp(text):
 
 def process_whatsapp_message(body):
     wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
+    
     name = body["entry"][0]["changes"][0]["value"]["contacts"][0]["profile"]["name"]
+    first_name = name.split()[0]
 
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
 
-    ai_context = extract_information(message_body, name)
-    
-    final_response = "Desculpe, não consegui processar o seu pedido neste momento."
+    ai_context = extract_information(message_body, first_name)
     
     if ai_context:
-        generated_text = ai_context.get("response_draft")
-        
-        if generated_text:
-            final_response = generated_text
-            
-            if ai_context.get("nif"):
-                logging.info(f"NIF detetado: {ai_context.get('nif')}")
+        intent = ai_context.get("intent")
+        nif = ai_context.get("field_value")
+        generated_msg = ai_context.get("response_draft")
 
-    data = get_text_message_input(current_app.config["RECIPIENT_WAID"], final_response)
-    send_message(data)
+        # 2. CRIAR REGISTO NA BASE DE DADOS (PENDENTE)
+        try:
+            new_request = ServiceRequest(
+                wa_id=wa_id,
+                customer_name=name,
+                intent=intent,
+                field_value=nif,
+                generated_response=generated_msg,
+                status='PENDING' 
+            )
+            db.session.add(new_request)
+            db.session.commit()
+            logging.info(f"✅ Pedido guardado na BD com ID: {new_request.id}")
+            
+        except Exception as e:
+            logging.error(f"❌ Erro ao gravar na BD: {e}")
+            db.session.rollback()
+            return # Sai se der erro na BD
+    else:
+        logging.error("Falha ao obter contexto da IA.")
 
 
 def is_valid_whatsapp_message(body):
