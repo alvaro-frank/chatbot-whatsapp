@@ -2,8 +2,7 @@ import logging
 from flask import current_app, jsonify
 import json
 import requests
-import random              
-from datetime import datetime
+import google.generativeai as genai
 
 # from app.services.openai_service import generate_response
 import re
@@ -26,7 +25,7 @@ def get_text_message_input(recipient, text):
         }
     )
 
-
+"""
 def generate_response(response):
     now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -36,7 +35,7 @@ def generate_response(response):
     soma = num1 + num2
 
     return f"{dt_string} -> {num1} + {num2} = {soma}"
-
+"""
 
 def send_message(data):
     headers = {
@@ -64,6 +63,66 @@ def send_message(data):
         log_http_response(response)
         return response
 
+def extract_information(message_body, user_name):
+    api_key = current_app.config["GEMINI_API_KEY"]
+    if not api_key:
+        logging.error("❌ ERRO CRÍTICO: GEMINI_API_KEY não encontrada nas configurações!")
+        return None
+    else:
+        # Imprime os primeiros 5 caracteres só para confirmar que carregou algo
+        logging.info(f"🔑 API Key carregada: {api_key[:5]}...")
+    
+    genai.configure(api_key=api_key)
+    
+    model = genai.GenerativeModel("gemini-flash-latest")
+    
+    prompt = f"""
+    És um assistente de CRM de uma contabilidade experiente e prestável.
+    
+    1. Analisa a mensagem do cliente: "{message_body}"
+    2. Extrai a intenção ("alterar_nif" ou "outro") e o NIF se existir.
+    3. Gera uma resposta curta, educada e profissional para o cliente.
+       - INCLUI SEMPRE o nome "{user_name}" na resposta para ser mais pessoal.
+       - Se for "alterar_nif" com NIF válido: Confirma que a alteração foi efetuada com sucesso na ficha de cliente.
+       - Se for "alterar_nif" sem NIF: Pede o número educadamente.
+       - Se for "outro": Diz que um contabilista vai analisar o pedido.
+
+    INSTRUÇÕES DE IDIOMA:
+    1. Identificar o idioma em que o cliente escreveu (Português, Inglês, Espanhol, Francês, etc.).
+    2. A resposta gerada no campo "message_to_customer" DEVE ser obrigatoriamente nesse mesmo idioma.
+    3. Se o idioma for ambíguo, usa Português de Portugal como padrão.
+    
+    O cliente chama-se: "{user_name}".
+    Mensagem do cliente: "{message_body}"
+    
+    Responde APENAS com um JSON neste formato:
+    {{
+        "intent": "alterar_nif" ou "outro",
+        "nif": "número extraído ou null se não houver",
+        "confidence": "alto", "medio" ou "baixo",
+        "response_draft": "O texto da resposta sugerida aqui..."
+    }}
+
+    Mensagem do cliente: "{message_body}"
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        
+        logging.info(f"🤖 Resposta Bruta do Gemini: {response.text}")
+        
+        text_response = response.text.strip().replace('```json', '').replace('```', '')
+        data = json.loads(text_response)
+        
+        logging.info(f"✅ JSON Parseado: {data}")
+        
+        return data
+    except Exception as e:
+        logging.error(f"❌ ERRO no extract_information: {str(e)}")
+
+        if 'response' in locals() and hasattr(response, 'prompt_feedback'):
+            logging.error(f"⚠️ Feedback de Segurança: {response.prompt_feedback}")
+        return None
 
 def process_text_for_whatsapp(text):
     # Remove brackets
@@ -90,14 +149,20 @@ def process_whatsapp_message(body):
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     message_body = message["text"]["body"]
 
-    # TODO: implement custom function here
-    response = generate_response(message_body)
+    ai_context = extract_information(message_body, name)
+    
+    final_response = "Desculpe, não consegui processar o seu pedido neste momento."
+    
+    if ai_context:
+        generated_text = ai_context.get("response_draft")
+        
+        if generated_text:
+            final_response = generated_text
+            
+            if ai_context.get("nif"):
+                logging.info(f"NIF detetado: {ai_context.get('nif')}")
 
-    # OpenAI Integration
-    # response = generate_response(message_body, wa_id, name)
-    # response = process_text_for_whatsapp(response)
-
-    data = get_text_message_input(current_app.config["RECIPIENT_WAID"], response)
+    data = get_text_message_input(current_app.config["RECIPIENT_WAID"], final_response)
     send_message(data)
 
 
