@@ -14,6 +14,9 @@ def load_configurations(app):
     app.config["VERSION"] = os.getenv("VERSION")
     app.config["PHONE_NUMBER_ID"] = os.getenv("PHONE_NUMBER_ID")
     app.config["VERIFY_TOKEN"] = os.getenv("VERIFY_TOKEN")
+    app.config["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY")
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///chatbot.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 def configure_logging():
