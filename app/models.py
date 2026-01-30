@@ -10,6 +10,7 @@ class ServiceRequest(db.Model):
     
     # Detalhes do pedido
     intent = db.Column(db.String(50), nullable=False)  # Ex: 'alterar_nif'
+    user_input = db.Column(db.Text)
     field_value = db.Column(db.String(255))            # O novo NIF (ex: '123456789')
     generated_response = db.Column(db.Text)
     
