@@ -149,6 +149,9 @@ def process_whatsapp_message(body):
         intent = ai_context.get("intent")
         nif = ai_context.get("field_value")
         generated_msg = ai_context.get("response_draft")
+        
+        if intent == "outro":
+            return
 
         # 2. CRIAR REGISTO NA BASE DE DADOS (PENDENTE)
         try:
@@ -157,6 +160,7 @@ def process_whatsapp_message(body):
                 customer_name=name,
                 intent=intent,
                 field_value=nif,
+                user_input=message_body,
                 generated_response=generated_msg,
                 status='PENDING' 
             )
