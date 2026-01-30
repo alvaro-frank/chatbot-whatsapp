@@ -8,6 +8,20 @@ admin_blueprint = Blueprint("admin", __name__, url_prefix="/admin")
 
 @admin_blueprint.route("/requests", methods=["GET"])
 def get_pending_requests():
+    try:
+        expiration_limit = datetime.utcnow() - timedelta(hours=24)
+        
+        deleted_count = ServiceRequest.query.filter(
+            ServiceRequest.status == 'PENDING',
+            ServiceRequest.created_at < expiration_limit
+        ).delete()
+        
+        if deleted_count > 0:
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro na limpeza automática: {e}")
+        
     requests = ServiceRequest.query.filter_by(status='PENDING').all()
     
     output = []
@@ -31,6 +45,7 @@ def get_pending_requests():
             "wa_id": r.wa_id,
             "intent": r.intent,
             "field_value": r.field_value,
+            "user_input": r.user_input,
             "response_text": r.generated_response,
             "date": r.created_at.strftime("%Y-%m-%d %H:%M"),
             "system_simulation": simulation_data
