@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-
-// Interface Exata dos Dados
 interface ServiceRequest {
   id: number;
   customer: string;
@@ -18,12 +16,9 @@ function App() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
-
-  // Buscar dados
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      // Nota: O Vite proxy (vite.config.ts) trata do /admin -> localhost:8000
       const res = await fetch('/admin/requests');
       if (!res.ok) throw new Error("Falha na rede");
       const data = await res.json();
@@ -37,19 +32,14 @@ function App() {
 
   useEffect(() => {
     fetchRequests();
-    // Opcional: Polling automático a cada 30 segundos
     const interval = setInterval(fetchRequests, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  // Handler para editar texto localmente
   const handleTextChange = (id: number, newText: string) => {
     setRequests(prev => prev.map(req =>
       req.id === id ? { ...req, response_text: newText } : req
     ));
   };
-
-  // Aprovar
   const handleApprove = async (id: number, finalResponse: string) => {
     if (!confirm("Confirmar aprovação e envio da mensagem?")) return;
 
@@ -62,7 +52,6 @@ function App() {
       });
 
       if (res.ok) {
-        // Remover da lista localmente para feedback instantâneo
         setRequests(prev => prev.filter(r => r.id !== id));
         alert("✅ Processado com sucesso!");
       } else {
@@ -72,11 +61,9 @@ function App() {
       alert("Erro de conexão.");
     } finally {
       setProcessingId(null);
-      fetchRequests(); // Sincronizar final
+      fetchRequests();
     }
   };
-
-  // Rejeitar
   const handleReject = async (id: number, explanation: string) => {
     if (!confirm("Tem a certeza que deseja rejeitar? O cliente será notificado.")) return;
 
@@ -120,12 +107,11 @@ function App() {
         </div>
       )}
 
-      {/* LISTA DE PEDIDOS */}
+      {/* REQUESTS LIST */}
       <div className="requests-list">
         {requests.map((req) => (
           <div key={req.id} className="request-card">
 
-            {/* 1. Topo do Cartão */}
             <div className="card-header">
               <div>
                 <h3 className="customer-name">{req.customer}</h3>
@@ -134,14 +120,12 @@ function App() {
               <span className="message-date">{req.date}</span>
             </div>
 
-            {/* 2. Tags e Metadados */}
             <div className="meta-data">
               <span className="badge badge-intent">
                 Operação: {req.intent.replace('_', ' ')}
               </span>
             </div>
 
-            {/* 3. Editor de Resposta */}
             <div style={{
               backgroundColor: '#f8fafc',
               borderRadius: '12px',
@@ -150,7 +134,6 @@ function App() {
               border: '1px solid #e2e8f0'
             }}>
 
-              {/* Balão do Cliente */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
                 <div style={{
                   width: '35px', height: '35px', borderRadius: '50%',
@@ -166,11 +149,10 @@ function App() {
                   color: '#334155'
                 }}>
                   <strong>{req.customer}:</strong><br />
-                  "{req.user_input}"
+                  {req.user_input}
                 </div>
               </div>
 
-              {/* Balão do Bot (Editável) */}
               <div style={{ display: 'flex', gap: '10px', flexDirection: 'row-reverse' }}>
                 <div style={{
                   width: '35px', height: '35px', borderRadius: '50%',
@@ -188,14 +170,13 @@ function App() {
                     onChange={(e) => handleTextChange(req.id, e.target.value)}
                     style={{
                       borderRadius: '12px 0 12px 12px',
-                      border: '2px solid #3b82f6' // Borda azul para destacar que é do bot
+                      border: '2px solid #3b82f6'
                     }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* 4. Simulação Técnica (Matrix Box) */}
             <div className="simulation-container">
               <div className="terminal-header">
                 <span className="terminal-dot"></span>
@@ -208,7 +189,6 @@ function App() {
               </div>
             </div>
 
-            {/* 5. Ações */}
             <div className="actions">
               <button
                 className="btn-approve"

@@ -1,9 +1,9 @@
 :root {
   --bg-color: #f3f4f6;
   --card-bg: #ffffff;
-  --primary-color: #2563eb; /* Azul Corporate */
-  --success-color: #10b981; /* Verde Moderno */
-  --danger-color: #ef4444;  /* Vermelho Suave */
+  --primary-color: #2563eb; 
+  --success-color: #10b981; 
+  --danger-color: #ef4444; 
   --text-main: #1f2937;
   --text-secondary: #6b7280;
   --border-color: #e5e7eb;

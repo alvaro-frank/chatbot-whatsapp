@@ -36,25 +36,21 @@ def send_message(data):
     try:
         response = requests.post(
             url, data=data, headers=headers, timeout=10
-        )  # 10 seconds timeout as an example
-        response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
+        )  
+        response.raise_for_status()  
     except requests.Timeout:
         logging.error("Timeout occurred while sending message")
         return jsonify({"status": "error", "message": "Request timed out"}), 408
     except (
         requests.RequestException
-    ) as e:  # This will catch any general request exception
+    ) as e:
         logging.error(f"Request failed due to: {e}")
         return jsonify({"status": "error", "message": "Failed to send message"}), 500
     else:
-        # Process the response as normal
         log_http_response(response)
         return response
 
 def extract_information(message_body, user_name):
-    """
-    Usa a Groq (Llama 3) para extrair a intenção e gerar a resposta.
-    """
     api_key = current_app.config.get("GROQ_API_KEY")
     if not api_key:
         logging.error("GROQ_API_KEY não configurada.")
@@ -99,15 +95,11 @@ def extract_information(message_body, user_name):
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": message_body}
             ],
-            model="llama-3.3-70b-versatile", # Modelo muito inteligente e gratuito
-            
-            # Isto obriga o modelo a responder APENAS JSON (Super Importante)
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}, 
             
             temperature=0
         )
-
-        # Processar a resposta
         response_content = completion.choices[0].message.content
         data = json.loads(response_content)
         return data
@@ -117,18 +109,10 @@ def extract_information(message_body, user_name):
         return None
 
 def process_text_for_whatsapp(text):
-    # Remove brackets
     pattern = r"\【.*?\】"
-    # Substitute the pattern with an empty string
     text = re.sub(pattern, "", text).strip()
-
-    # Pattern to find double asterisks including the word(s) in between
     pattern = r"\*\*(.*?)\*\*"
-
-    # Replacement pattern with single asterisks
     replacement = r"*\1*"
-
-    # Substitute occurrences of the pattern with the replacement
     whatsapp_style_text = re.sub(pattern, replacement, text)
 
     return whatsapp_style_text
@@ -152,8 +136,6 @@ def process_whatsapp_message(body):
         
         if intent == "outro":
             return
-
-        # 2. CRIAR REGISTO NA BASE DE DADOS (PENDENTE)
         try:
             new_request = ServiceRequest(
                 wa_id=wa_id,
@@ -171,15 +153,12 @@ def process_whatsapp_message(body):
         except Exception as e:
             logging.error(f"❌ Erro ao gravar na BD: {e}")
             db.session.rollback()
-            return # Sai se der erro na BD
+            return
     else:
         logging.error("Falha ao obter contexto da IA.")
 
 
 def is_valid_whatsapp_message(body):
-    """
-    Check if the incoming webhook event has a valid WhatsApp message structure.
-    """
     return (
         body.get("object")
         and body.get("entry")

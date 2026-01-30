@@ -79,34 +79,19 @@ def approve_request(request_id):
 
 @admin_blueprint.route("/requests/<int:request_id>/reject", methods=["POST"])
 def reject_request(request_id):
-    """
-    O Chefe clicou em REJEITAR.
-    1. Atualiza BD para REJECTED.
-    2. NÃO executa operação no CRM.
-    3. ENVIA a mensagem de explicação ao cliente.
-    """
     req = ServiceRequest.query.get_or_404(request_id)
     
     if req.status != 'PENDING':
         return jsonify({"error": "Este pedido já foi processado"}), 400
-
-    # 1. Obter o texto da mensagem (editado pelo chefe)
     body = request.get_json(silent=True) or {}
-    # Se o frontend enviar texto, usa-o. Se não, usa uma mensagem padrão.
     final_text = body.get('response_text', "O seu pedido não pôde ser processado. Por favor contacte o suporte.")
-
-    # 2. Atualizar Estado
     req.status = 'REJECTED'
-    req.generated_response = final_text # Guardamos o que foi dito ao cliente
-    
-    # 3. Enviar mensagem de Rejeição/Explicação no WhatsApp
+    req.generated_response = final_text
     try:
         data = get_text_message_input(req.wa_id, final_text)
         send_message(data)
     except Exception as e:
         print(f"Erro ao enviar mensagem de rejeição: {e}")
-        # Mesmo que falhe o envio, queremos marcar como rejeitado na BD? 
-        # Geralmente sim, mas podes retornar erro 500 se preferires.
 
     db.session.commit()
     
