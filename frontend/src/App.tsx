@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 
+// Interface Exata dos Dados
 interface ServiceRequest {
   id: number;
   customer: string;
@@ -10,187 +11,225 @@ interface ServiceRequest {
   response_text: string;
   date: string;
   system_simulation: any;
+  user_input: string;
 }
 
 function App() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
+  // Buscar dados
   const fetchRequests = async () => {
+    setIsLoading(true);
     try {
+      // Nota: O Vite proxy (vite.config.ts) trata do /admin -> localhost:8000
       const res = await fetch('/admin/requests');
+      if (!res.ok) throw new Error("Falha na rede");
       const data = await res.json();
       setRequests(data);
     } catch (error) {
-      console.error("Erro ao buscar pedidos:", error);
+      console.error("Erro ao carregar:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchRequests();
+    // Opcional: Polling automático a cada 30 segundos
+    const interval = setInterval(fetchRequests, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Nova função para lidar com a edição do texto
+  // Handler para editar texto localmente
   const handleTextChange = (id: number, newText: string) => {
-    setRequests(prevRequests =>
-      prevRequests.map(req =>
-        req.id === id ? { ...req, response_text: newText } : req
-      )
-    );
+    setRequests(prev => prev.map(req =>
+      req.id === id ? { ...req, response_text: newText } : req
+    ));
   };
 
-  const handleApprove = async (id: number, currentText: string) => {
-    // Agora enviamos o texto atual (possivelmente editado)
-    if (!confirm("Tem a certeza que quer aprovar e enviar esta mensagem?")) return;
-    setLoading(true);
+  // Aprovar
+  const handleApprove = async (id: number, finalResponse: string) => {
+    if (!confirm("Confirmar aprovação e envio da mensagem?")) return;
 
+    setProcessingId(id);
     try {
       const res = await fetch(`/admin/requests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response_text: currentText }) // <--- Enviamos o texto novo aqui
+        body: JSON.stringify({ response_text: finalResponse })
       });
 
       if (res.ok) {
-        alert("✅ Aprovado com sucesso!");
-        fetchRequests();
+        // Remover da lista localmente para feedback instantâneo
+        setRequests(prev => prev.filter(r => r.id !== id));
+        alert("✅ Processado com sucesso!");
       } else {
-        alert("Erro ao aprovar.");
+        alert("❌ Erro ao processar pedido.");
       }
     } catch (error) {
-      console.error(error);
       alert("Erro de conexão.");
     } finally {
-      setLoading(false);
+      setProcessingId(null);
+      fetchRequests(); // Sincronizar final
     }
   };
 
-  const handleReject = async (id: number, currentText: string) => {
-    if (!confirm("Tem a certeza que quer rejeitar? O cliente receberá a mensagem escrita.")) return;
-    setLoading(true);
+  // Rejeitar
+  const handleReject = async (id: number, explanation: string) => {
+    if (!confirm("Tem a certeza que deseja rejeitar? O cliente será notificado.")) return;
+
+    setProcessingId(id);
     try {
       const res = await fetch(`/admin/requests/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response_text: currentText }) // <--- Enviamos o texto aqui
+        body: JSON.stringify({ response_text: explanation })
       });
 
       if (res.ok) {
-        fetchRequests();
+        setRequests(prev => prev.filter(r => r.id !== id));
       } else {
         alert("Erro ao rejeitar.");
       }
     } catch (error) {
-      console.error(error);
       alert("Erro de conexão.");
     } finally {
-      setLoading(false);
+      setProcessingId(null);
+      fetchRequests();
     }
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Dashboard Pronegócios</h1>
+    <div className="app-container">
+      {/* HEADER */}
+      <header className="header">
+        <div className="brand">Pronegócios Dashboard</div>
+      </header>
 
-      {requests.length === 0 ? (
-        <p>Nenhum pedido pendente.</p>
-      ) : (
-        <div style={{ display: 'grid', gap: '20px' }}>
-          {requests.map((req) => (
-            <div key={req.id} style={{
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              padding: '20px',
-              backgroundColor: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h3 style={{ margin: 0 }}>👤 {req.customer}</h3>
-                <small style={{ color: '#666' }}>{req.date}</small>
-              </div>
+      {/* LOADING STATE */}
+      {isLoading && requests.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '20px' }}>Carregando pedidos...</div>
+      )}
 
-              <div style={{ marginBottom: '15px' }}>
-                <span style={{
-                  backgroundColor: '#eee', padding: '4px 8px', borderRadius: '4px', fontSize: '0.9em', marginRight: '10px'
-                }}>
-                  {req.intent}
-                </span>
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9em', color: '#555' }}>
-                  Sugestão IA (Pode editar):
-                </label>
-                <textarea
-                  value={req.response_text}
-                  onChange={(e) => handleTextChange(req.id, e.target.value)}
-                  style={{
-                    width: '100%',
-                    minHeight: '80px',
-                    padding: '10px',
-                    borderRadius: '5px',
-                    borderColor: '#ccc',
-                    fontFamily: 'inherit',
-                    backgroundColor: '#f8f9fa'
-                  }}
-                />
-              </div>
-
-              <div style={{
-                marginBottom: '15px',
-                border: '1px solid #333',
-                borderRadius: '6px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  backgroundColor: '#333',
-                  color: '#fff',
-                  padding: '5px 10px',
-                  fontSize: '0.8em',
-                  fontFamily: 'monospace',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px'
-                }}>
-                </div>
-                <div style={{
-                  backgroundColor: '#1e1e1e',
-                  color: '#00ff00',
-                  padding: '10px',
-                  fontFamily: 'Consolas, "Courier New", monospace',
-                  fontSize: '0.85em',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {JSON.stringify(req.system_simulation, null, 2)}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => handleApprove(req.id, req.response_text)}
-                  disabled={loading}
-                  style={{
-                    backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px',
-                    border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
-                  }}
-                >
-                  Aprovar
-                </button>
-                <button
-                  onClick={() => handleReject(req.id, req.response_text)}
-                  disabled={loading}
-                  style={{
-                    backgroundColor: '#f44336', color: 'white', padding: '10px 20px',
-                    border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
-                  }}
-                >
-                  Rejeitar
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* EMPTY STATE */}
+      {!isLoading && requests.length === 0 && (
+        <div className="empty-state">
+          <h2>Não existem pedidos pendentes neste momento.</h2>
         </div>
       )}
+
+      {/* LISTA DE PEDIDOS */}
+      <div className="requests-list">
+        {requests.map((req) => (
+          <div key={req.id} className="request-card">
+
+            {/* 1. Topo do Cartão */}
+            <div className="card-header">
+              <div>
+                <h3 className="customer-name">{req.customer}</h3>
+                <span className="wa-id">+{req.wa_id}</span>
+              </div>
+              <span className="message-date">{req.date}</span>
+            </div>
+
+            {/* 2. Tags e Metadados */}
+            <div className="meta-data">
+              <span className="badge badge-intent">
+                Operação: {req.intent.replace('_', ' ')}
+              </span>
+            </div>
+
+            {/* 3. Editor de Resposta */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              padding: '15px',
+              margin: '15px 0',
+              border: '1px solid #e2e8f0'
+            }}>
+
+              {/* Balão do Cliente */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                <div style={{
+                  width: '35px', height: '35px', borderRadius: '50%',
+                  backgroundColor: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>👤</div>
+                <div style={{
+                  backgroundColor: '#fff',
+                  padding: '10px 15px',
+                  borderRadius: '0 12px 12px 12px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  maxWidth: '80%',
+                  fontSize: '0.9rem',
+                  color: '#334155'
+                }}>
+                  <strong>{req.customer}:</strong><br />
+                  "{req.user_input}"
+                </div>
+              </div>
+
+              {/* Balão do Bot (Editável) */}
+              <div style={{ display: 'flex', gap: '10px', flexDirection: 'row-reverse' }}>
+                <div style={{
+                  width: '35px', height: '35px', borderRadius: '50%',
+                  backgroundColor: '#3b82f6', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>🤖</div>
+                <div style={{ width: '100%', maxWidth: '80%' }}>
+                  <strong>
+                    <div style={{ marginBottom: '5px', fontSize: '0.8rem', textAlign: 'right', color: '#64748b' }}>
+                      Sugestão de Resposta:
+                    </div>
+                  </strong>
+                  <textarea
+                    className="response-input"
+                    value={req.response_text}
+                    onChange={(e) => handleTextChange(req.id, e.target.value)}
+                    style={{
+                      borderRadius: '12px 0 12px 12px',
+                      border: '2px solid #3b82f6' // Borda azul para destacar que é do bot
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Simulação Técnica (Matrix Box) */}
+            <div className="simulation-container">
+              <div className="terminal-header">
+                <span className="terminal-dot"></span>
+                <span className="terminal-dot"></span>
+                <span className="terminal-dot"></span>
+                <span>SYSTEM_PREVIEW.exe</span>
+              </div>
+              <div className="terminal-body">
+                {JSON.stringify(req.system_simulation, null, 2)}
+              </div>
+            </div>
+
+            {/* 5. Ações */}
+            <div className="actions">
+              <button
+                className="btn-approve"
+                onClick={() => handleApprove(req.id, req.response_text)}
+                disabled={processingId === req.id}
+              >
+                {processingId === req.id ? 'A processar...' : '✓ Aprovar'}
+              </button>
+
+              <button
+                className="btn-reject"
+                onClick={() => handleReject(req.id, req.response_text)}
+                disabled={processingId === req.id}
+              >
+                ✕ Rejeitar
+              </button>
+            </div>
+
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
