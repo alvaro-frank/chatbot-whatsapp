@@ -19,7 +19,7 @@ function App() {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/admin/requests');
+      const res = await fetch('/admin/requests/');
       if (!res.ok) throw new Error("Falha na rede");
       const data = await res.json();
       setRequests(data);
