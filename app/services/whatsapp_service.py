@@ -12,9 +12,9 @@ from app.repositories.request_repository import RequestRepository
 from app.services.ai_service import AIService
 
 class WhatsAppService:
-    def __init__(self):
-        self.repo = RequestRepository()
-        self.ai_service = AIService()
+    def __init__(self, repo: RequestRepository, ai_service: AIService):
+        self.repo = repo
+        self.ai_service = ai_service
 
     def process_incoming_message(self, body: dict):
         """

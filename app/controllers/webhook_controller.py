@@ -11,6 +11,10 @@ from app.services.whatsapp_service import WhatsAppService
 
 webhook_bp = Blueprint("webhook", __name__)
 
+repo = RequestRepository()
+ai_service = AIService()
+service = WhatsAppService(repo=repo, ai_service=ai_service)
+
 @webhook_bp.route("/webhook", methods=["GET"])
 def verify_webhook():
     """
