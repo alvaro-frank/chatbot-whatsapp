@@ -9,7 +9,8 @@ from app.services.request_service import RequestService
 
 requests_bp = Blueprint("requests_controller", __name__, url_prefix="/admin/requests")
 
-service = RequestService()
+repo = RequestRepository()
+service = RequestService(repo=repo)
 
 @requests_bp.route("/", methods=["GET"])
 def get_pending_requests():

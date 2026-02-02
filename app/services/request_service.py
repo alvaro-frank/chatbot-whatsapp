@@ -13,7 +13,7 @@ class RequestService:
     Service layer handling the lifecycle of ServiceRequests (clean, approve, reject).
     """
 
-    def __init__(self):
+    def __init__(self, repo: RequestRepository):
         self.repo = RequestRepository()
 
     def list_active_requests(self):
