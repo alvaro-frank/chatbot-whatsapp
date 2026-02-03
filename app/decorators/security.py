@@ -1,3 +1,9 @@
+# ==============================================================================
+# FILE: app/decorators/security.py
+# DESCRIPTION: Security decorators for request validation.
+#              Ensures requests originate from a trusted source (Meta).
+# ==============================================================================
+
 from functools import wraps
 from flask import current_app, jsonify, request
 import logging
@@ -6,8 +12,16 @@ import hmac
 
 
 def validate_signature(payload, signature):
+    """
+    Validates the SHA256 signature provided by Meta.
+    """
+    secret = current_app.config.get("APP_SECRET")
+    if not secret:
+        logging.error("❌ APP_SECRET is not configured.")
+        return False
+
     expected_signature = hmac.new(
-        bytes(current_app.config["APP_SECRET"], "latin-1"),
+        bytes(secret, "latin-1"),
         msg=payload.encode("utf-8"),
         digestmod=hashlib.sha256,
     ).hexdigest()
@@ -16,14 +30,25 @@ def validate_signature(payload, signature):
 
 
 def signature_required(f):
+    """
+    Decorator to protect routes by verifying the X-Hub-Signature-256 header.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        signature = request.headers.get("X-Hub-Signature-256", "")[
-            7:
-        ]
+        header_signature = request.headers.get("X-Hub-Signature-256", "")
+        
+        # Robust parsing of the 'sha256=' prefix
+        if not header_signature or not header_signature.startswith("sha256="):
+            logging.warning("⚠️ Missing or invalid signature format in headers.")
+            return jsonify({"status": "error", "message": "Signature missing"}), 403
+
+        # Extract signature after 'sha256='
+        signature = header_signature.replace("sha256=", "")
+        
         if not validate_signature(request.data.decode("utf-8"), signature):
-            logging.info("Signature verification failed!")
+            logging.error(f"❌ Signature verification failed for IP: {request.remote_addr}")
             return jsonify({"status": "error", "message": "Invalid signature"}), 403
+            
         return f(*args, **kwargs)
 
     return decorated_function
