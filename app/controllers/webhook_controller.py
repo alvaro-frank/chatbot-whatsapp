@@ -10,6 +10,7 @@ from app.decorators.security import signature_required
 from app.repositories.request_repository import RequestRepository
 from app.services.whatsapp_service import WhatsAppService
 from app.services.ai_service import AIService
+from app.utils.whatsapp_parser import parse_whatsapp_message
 
 webhook_bp = Blueprint("webhook", __name__)
 
@@ -53,12 +54,20 @@ def handle_incoming_event():
         pass
 
     try:
+        # 1. Parse JSON to DTO
+        message_dto = parse_whatsapp_message(body)
+        
+        # 2. Dependency Injection
         repo = RequestRepository()
         ai_service = AIService()
         service = WhatsAppService(repo=repo, ai_service=ai_service)
         
-        service.process_incoming_message(body)
+        # 3. Process
+        service.process_incoming_message(message_dto)
+        
+    except ValueError as e:
+        logging.warning(f"Ignored event: {e}")
     except Exception as e:
-        logging.error(f"Error passing message to service: {e}")
+        logging.error(f"Error in webhook: {e}")
 
     return jsonify({"status": "ok"}), 200
