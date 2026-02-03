@@ -7,6 +7,7 @@
 from datetime import datetime, timedelta
 from app.repositories.request_repository import RequestRepository
 from app.utils.whatsapp_utils import send_message, get_text_message_input
+from app.commands.command_factory import CommandFactory
 
 class RequestService:
     """
@@ -28,17 +29,12 @@ class RequestService:
         # 1. Fetch Data
         requests = self.repo.get_all_pending()
 
-        # 2. Transform Data (DTO pattern)
+        # 2. Transform Data (DTO pattern using Command Pattern)
         output = []
         for r in requests:
-            simulation_data = {}
-            if r.intent == "alterar_nif":
-                simulation_data = {
-                    "action": r.intent,
-                    "target_table": "TABELA_CLIENTES_CRM",
-                    "parameters": {"value": r.field_value},
-                    "where": {"client_id": "CRM_ID_PLACEHOLDER"}
-                }
+            # Get the appropriate command for the intent and execute it
+            command = CommandFactory.get_command(r.intent)
+            simulation_data = command.execute(r)
             
             output.append({
                 "id": r.id,
