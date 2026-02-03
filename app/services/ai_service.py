@@ -1,6 +1,6 @@
 # ==============================================================================
 # FILE: app/services/ai_service.py
-# DESCRIPTION: Handles all interactions with the LLM (Groq).
+# DESCRIPTION: Handles all interactions with the LLM.
 #              Responsible for intent classification and entity extraction.
 # ==============================================================================
 
@@ -8,8 +8,9 @@ import json
 import logging
 from flask import current_app
 from groq import Groq
+from app.services.base_llm_service import BaseLLMService
 
-class AIService:
+class AIService(BaseLLMService):
     def __init__(self):
         self.api_key = current_app.config.get("GROQ_API_KEY")
         self.client = None

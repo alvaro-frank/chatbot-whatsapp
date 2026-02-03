@@ -7,13 +7,11 @@
 import logging
 from flask import Blueprint, request, jsonify, current_app, make_response
 from app.decorators.security import signature_required
+from app.repositories.request_repository import RequestRepository
 from app.services.whatsapp_service import WhatsAppService
+from app.services.ai_service import AIService
 
 webhook_bp = Blueprint("webhook", __name__)
-
-repo = RequestRepository()
-ai_service = AIService()
-service = WhatsAppService(repo=repo, ai_service=ai_service)
 
 @webhook_bp.route("/webhook", methods=["GET"])
 def verify_webhook():
@@ -55,7 +53,10 @@ def handle_incoming_event():
         pass
 
     try:
-        service = WhatsAppService()
+        repo = RequestRepository()
+        ai_service = AIService()
+        service = WhatsAppService(repo=repo, ai_service=ai_service)
+        
         service.process_incoming_message(body)
     except Exception as e:
         logging.error(f"Error passing message to service: {e}")

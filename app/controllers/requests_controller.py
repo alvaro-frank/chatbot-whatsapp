@@ -6,11 +6,9 @@
 
 from flask import Blueprint, jsonify, request
 from app.services.request_service import RequestService
+from app.repositories.request_repository import RequestRepository
 
 requests_bp = Blueprint("requests_controller", __name__, url_prefix="/admin/requests")
-
-repo = RequestRepository()
-service = RequestService(repo=repo)
 
 @requests_bp.route("/", methods=["GET"])
 def get_pending_requests():
@@ -19,6 +17,9 @@ def get_pending_requests():
     Triggers automatic cleanup via the service layer.
     """
     try:
+        repo = RequestRepository()
+        service = RequestService(repo=repo)
+
         data = service.list_active_requests()
         return jsonify(data), 200
     except Exception as e:
@@ -31,6 +32,9 @@ def approve_request(request_id):
     Endpoint to approve a specific request.
     """
     try:
+        repo = RequestRepository()
+        service = RequestService(repo=repo)
+
         body = request.get_json(silent=True) or {}
         custom_text = body.get('response_text')
         
@@ -49,6 +53,9 @@ def reject_request(request_id):
     Endpoint to reject a specific request.
     """
     try:
+        repo = RequestRepository()
+        service = RequestService(repo=repo)
+
         body = request.get_json(silent=True) or {}
         custom_text = body.get('response_text')
         

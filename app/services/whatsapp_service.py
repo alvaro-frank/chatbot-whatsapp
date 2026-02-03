@@ -9,10 +9,10 @@
 import logging
 from app.models import ServiceRequest
 from app.repositories.request_repository import RequestRepository
-from app.services.ai_service import AIService
+from app.services.ai_service import BaseLLMService
 
 class WhatsAppService:
-    def __init__(self, repo: RequestRepository, ai_service: AIService):
+    def __init__(self, repo: RequestRepository, ai_service: BaseLLMService):
         self.repo = repo
         self.ai_service = ai_service
 
