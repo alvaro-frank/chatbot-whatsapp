@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ServiceRequest } from '../domain/models/ServiceRequest';
-import { HttpRequestRepository } from '../infrastructure/api/HttpRequestRepository';
-
-const repo = new HttpRequestRepository();
+import { useRepository } from '../infrastructure/context/RepositoryContext';
 
 export function useRequests() {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [processingId, setProcessingId] = useState<number | null>(null);
+
+    const repo = useRepository();
 
     const fetchRequests = useCallback(async () => {
         setIsLoading(true);
@@ -19,7 +19,7 @@ export function useRequests() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [repo]);
 
     useEffect(() => {
         fetchRequests();
@@ -63,6 +63,7 @@ export function useRequests() {
         requests,
         isLoading,
         processingId,
+        fetchRequests,
         handleApprove,
         handleReject,
         handleUpdateLocalText,
