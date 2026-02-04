@@ -4,3 +4,6 @@ aiohttp
 requests
 flask-sqlalchemy
 groq
+pytest
+pytest-flask
+pytest-mock
