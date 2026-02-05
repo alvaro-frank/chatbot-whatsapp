@@ -22,7 +22,7 @@ export function RequestCard({ request, isProcessing, onApprove, onReject, onText
                 <div className="flip-card-front request-card" onClick={(e) => e.stopPropagation()}>
                     <div className="card-header" onClick={handleFlip} style={{ cursor: 'help' }}>
                         <div>
-                            <h3 className="customer-name">{request.customer} ℹ️</h3>
+                            <h3 className="customer-name">{request.customer}</h3>
                             <span className="wa-id">+{request.wa_id}</span>
                         </div>
                         <span className="message-date">{request.date}</span>
