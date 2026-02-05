@@ -9,3 +9,12 @@ services:
     restart: always
     env_file:
       - .env
+  chatbot_frontend:
+    build: ./frontend
+    container_name: bot-whatsapp-frontend
+    ports:
+      - "8001:5173" 
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules   
+    restart: always
