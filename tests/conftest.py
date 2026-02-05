@@ -21,7 +21,6 @@ def client(app):
 
 @pytest.fixture
 def db_session(app):
-    """Esta fixture cria as tabelas apenas para o teste que a pedir."""
     with app.app_context():
         db.create_all()
         yield db.session
