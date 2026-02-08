@@ -3,11 +3,12 @@
 # DESCRIPTION: Maps intent strings to specific Command classes.
 # ==============================================================================
 
-from app.commands.simulation_commands import AlterarNifCommand, DefaultSimulationCommand
+from app.commands.simulation_commands import AlterarNifCommand, AlterarMoradaCommand, DefaultSimulationCommand
 
 class CommandFactory:
     _commands = {
-        "alterar_nif": AlterarNifCommand()
+        "alterar_nif": AlterarNifCommand(),
+        "alterar_morada": AlterarMoradaCommand(),
     }
 
     @staticmethod
