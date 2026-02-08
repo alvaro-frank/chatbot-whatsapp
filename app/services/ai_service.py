@@ -51,6 +51,8 @@ class AIService(BaseLLMService):
             * If a number is found, confirm the reception for analysis.
             * If missing, ask for it politely.
         - "alterar_morada": Used for address updates.
+            * If a number is found, confirm the reception for analysis.
+            * If missing, ask for it politely.
         - "pedido_informacao": General questions about services.
         - "outro": Any request that does not fit the specific categories above.
 
