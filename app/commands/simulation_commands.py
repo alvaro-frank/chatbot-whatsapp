@@ -13,6 +13,15 @@ class AlterarNifCommand(BaseSimulationCommand):
             "parameters": {"value": request_model.field_value},
             "where": {"client_id": "CRM_ID_PLACEHOLDER"}
         }
+        
+class AlterarMoradaCommand(BaseSimulationCommand):
+    def execute(self, request_model) -> dict:
+        return {
+            "action": request_model.intent,
+            "target_table": "TABELA_CLIENTES_CRM",
+            "parameters": {"value": request_model.field_value},
+            "where": {"client_id": "CRM_ID_PLACEHOLDER"}
+        }
 
 class DefaultSimulationCommand(BaseSimulationCommand):
     def execute(self, request_model) -> dict:
