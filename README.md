@@ -1,5 +1,11 @@
 # Chatbot WhatsApp
 
+<img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python Version">
+<img src="https://img.shields.io/badge/framework-Flask-green.svg" alt="Framework">
+<img src="https://img.shields.io/badge/frontend-React_18-61DAFB.svg" alt="Frontend">
+<img src="https://img.shields.io/badge/docker-ready-blue.svg" alt="Docker">
+<img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+
 A production-grade Virtual Assistant project that automates customer service requests via WhatsApp. It implements **LLM-based Intent Recognition** using **Groq (Llama 3)** within a Flask architecture, complete with a React dashboard for "Human-in-the-Loop" validation and specific simulation commands.
 
 This project demonstrates a complete automated flow: from receiving messages via the **WhatsApp Business API**, analyzing content with Generative AI, to managing requests via a dedicated **Frontend** and deploying via **Docker**.
