@@ -1,10 +1,13 @@
 # Chatbot WhatsApp
 
-<img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python Version">
-<img src="https://img.shields.io/badge/framework-Flask-green.svg" alt="Framework">
-<img src="https://img.shields.io/badge/frontend-React_18-61DAFB.svg" alt="Frontend">
-<img src="https://img.shields.io/badge/docker-ready-blue.svg" alt="Docker">
-<img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0.0-000000?logo=flask&logoColor=white)
+![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5.2-646CFF?logo=vite&logoColor=white)
+![Groq](https://img.shields.io/badge/AI-Groq_Llama3-f55036?logo=openai&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)
 
 A production-grade Virtual Assistant project that automates customer service requests via WhatsApp. It implements **LLM-based Intent Recognition** using **Groq (Llama 3)** within a Flask architecture, complete with a React dashboard for "Human-in-the-Loop" validation and specific simulation commands.
 
