@@ -230,7 +230,7 @@ The human agent can edit the response and when clicks "Approve", the Dashboard s
 **Endpoint** `POST /admin/requests/{id}/approve` **Payload**:
 ```
 {
-  "response_text": "Hello Peter, I confirm the change of the Tax Identification Number to 266414563."
+  "response_text": "Hello João, I confirm the change of the Tax Identification Number to 266414563."
 }
 ```
 
@@ -247,7 +247,7 @@ Finally, the `WhatsAppService` executes the API call to Meta to deliver the appr
   "type": "text",
   "text": {
     "preview_url": false,
-    "body": "Hello Peter, I confirm the change of the Tax Identification Number to 266414563."
+    "body": "Hello João, I confirm the change of the Tax Identification Number to 266414563."
   }
 }
 ```
