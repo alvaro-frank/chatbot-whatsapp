@@ -6,7 +6,7 @@
 
 from datetime import datetime
 from app.extensions import db
-from app.models import ServiceRequest
+from app.domain.models import ServiceRequest
 
 class RequestRepository:
     """

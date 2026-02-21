@@ -1,11 +1,11 @@
 # ==============================================================================
-# FILE: app/models.py
+# FILE: app/domain/models.py
 # DESCRIPTION: Database Schema definitions (SQLAlchemy Models).
 #              Defines the structure of the 'ServiceRequest' entity.
 # ==============================================================================
 
 from datetime import datetime
-from .extensions import db
+from app.extensions import db
 
 class ServiceRequest(db.Model):
     """
