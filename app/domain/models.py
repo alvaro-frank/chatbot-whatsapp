@@ -5,7 +5,7 @@
 # ==============================================================================
 
 from datetime import datetime
-from app.extensions import db
+from app.infrastructure.database import db
 
 class ServiceRequest(db.Model):
     """

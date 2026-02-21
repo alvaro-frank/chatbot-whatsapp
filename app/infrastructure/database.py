@@ -1,6 +1,6 @@
 # ==============================================================================
-# FILE: app/extensions.py
-# DESCRIPTION: Central registry for Flask extensions (SQLAlchemy, etc.).
+# FILE: app/database.py
+# DESCRIPTION: Central registry for Flask database (SQLAlchemy, etc.).
 #              Prevents circular import errors by decoupling initialization.
 # ==============================================================================
 

@@ -2,7 +2,7 @@ from flask import Flask
 from app.config import load_configurations, configure_logging
 from app.controllers.webhook_controller import webhook_blueprint
 from app.controllers.requests_controller import requests_blueprint
-from .extensions import db
+from app.infrastructure.database import db
 
 def create_app():
     app = Flask(__name__)
