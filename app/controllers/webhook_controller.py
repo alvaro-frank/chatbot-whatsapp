@@ -1,73 +1,88 @@
 # ==============================================================================
 # FILE: app/controllers/webhook_controller.py
-# DESCRIPTION: Controller layer for WhatsApp Webhook.
-#              Handles verification (GET) and event reception (POST).
+# DESCRIPTION: Entry point for Meta's WhatsApp Webhook events.
+#              Handles security handshakes (GET) and incoming messaging 
+#              orchestration (POST). Ensures all raw payloads are parsed into 
+#              typed DTOs before entering the domain layer.
 # ==============================================================================
 
 import logging
-from flask import Blueprint, request, jsonify, current_app, make_response
+from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
-from app.repositories.request_repository import RequestRepository
-from app.services.whatsapp_service import WhatsAppService
-from app.services.ai_service import AIService
 from app.utils.whatsapp_parser import parse_whatsapp_message
+from app.dtos.whatsapp_dto import IncomingMessageDTO
+from app.infrastructure.groq_adapter import GroqAdapter
+from app.infrastructure.meta_whatsapp_adapter import MetaWhatsAppAdapter
+from app.repositories.request_repository import RequestRepository
+from app.services.request_service import RequestService
+from app.services.whatsapp_service import WhatsAppService
 
-webhook_bp = Blueprint("webhook", __name__)
+webhook_blueprint = Blueprint("webhook", __name__)
 
-@webhook_bp.route("/webhook", methods=["GET"])
+@webhook_blueprint.route("/webhook", methods=["GET"])
 def verify_webhook():
     """
-    Handles the verification challenge from Meta/Facebook.
-    Used when setting up the webhook in the Developer Portal.
+    Handles Meta's Webhook verification challenge (Handshake).
+    
+    Meta sends a GET request with a hub.verify_token to ensure the 
+    endpoint is valid and owned by the developer.
+    
+    Returns:
+        tuple: (challenge string, status code) if verified, 
+               otherwise error JSON and 403.
     """
     mode = request.args.get("hub.mode")
     token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
 
-    if mode and token:
-        if mode == "subscribe" and token == current_app.config["VERIFY_TOKEN"]:
-            logging.info("✅ WEBHOOK_VERIFIED")
+    if mode == "subscribe" and token == current_app.config["VERIFY_TOKEN"]:
+        logging.info("WEBHOOK_VERIFIED")
+        return challenge, 200
+    
+    logging.error("VERIFICATION_FAILED")
+    return jsonify({"status": "error", "message": "Verification failed"}), 403
 
-            return make_response(challenge, 200)
-        else:
-            logging.warning("❌ VERIFICATION_FAILED: Token mismatch")
-            
-            return jsonify({"status": "error", "message": "Verification failed"}), 403
-    else:
-        return jsonify({"status": "error", "message": "Missing parameters"}), 400
-
-
-@webhook_bp.route("/webhook", methods=["POST"])
+@webhook_blueprint.route("/webhook", methods=["POST"])
 @signature_required
-def handle_incoming_event():
+def handle_webhook():
     """
-    Receives the event payload from WhatsApp.
-    Delegates processing to WhatsAppService.
+    Processes incoming WhatsApp events (messages, statuses, etc.).
+    
+    This method acts as a Factory/Assembler, manually injecting 
+    dependencies into the Service layer. It transforms raw JSON 
+    payloads into structured IncomingMessageDTOs.
+    
+    Logic Flow:
+    1. Parse JSON into DTO.
+    2. Instantiate Repository and Infrastructure Adapters.
+    3. Assemble Domain Services via Dependency Injection.
+    4. Execute business orchestration.
+
+    Returns:
+        JSON: Standard 200 OK response required by Meta to avoid retries.
     """
     body = request.get_json()
-
     try:
-        changes = body.get("entry", [{}])[0].get("changes", [{}])[0]
-        if "statuses" in changes.get("value", {}):
-            return jsonify({"status": "ok"}), 200
-    except IndexError:
-        pass
-
-    try:
-        # 1. Parse JSON to DTO
         message_dto = parse_whatsapp_message(body)
         
-        # 2. Dependency Injection
         repo = RequestRepository()
-        ai_service = AIService()
-        service = WhatsAppService(repo=repo, ai_service=ai_service)
         
-        # 3. Process
+        llm_provider = GroqAdapter(api_key=current_app.config["GROQ_API_KEY"])
+        whatsapp_provider = MetaWhatsAppAdapter(
+            token=current_app.config["ACCESS_TOKEN"],
+            phone_number_id=current_app.config["PHONE_NUMBER_ID"]
+        )
+        
+        req_service = RequestService(repo=repo, whatsapp_provider=whatsapp_provider)
+        service = WhatsAppService(
+            llm_provider=llm_provider, 
+            whatsapp_provider=whatsapp_provider,
+            request_service=req_service
+        )
+        
         service.process_incoming_message(message_dto)
         
-    except ValueError as e:
-        logging.warning(f"Ignored event: {e}")
     except Exception as e:
-        logging.error(f"Error in webhook: {e}")
+        logging.error(f"Error processing Webhook: {e}")
 
     return jsonify({"status": "ok"}), 200

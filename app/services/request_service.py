@@ -1,115 +1,152 @@
 # ==============================================================================
 # FILE: app/services/request_service.py
-# DESCRIPTION: Contains the business logic for managing ServiceRequests.
-#              Orchestrates database updates and external API calls (WhatsApp).
+# DESCRIPTION: Core Domain Service responsible for the ServiceRequest lifecycle.
+#              Orchestrates business validation, persistence via repositories,
+#              simulation logic via Command Pattern, and outbound notifications.
 # ==============================================================================
 
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime
+from app.domain.interfaces import WhatsAppProvider
 from app.repositories.request_repository import RequestRepository
-from app.utils.whatsapp_utils import send_message, get_text_message_input
+from app.dtos.whatsapp_dto import IncomingMessageDTO, AIAnalysisDTO, ServiceRequestDTO
 from app.commands.command_factory import CommandFactory
+from app.models import ServiceRequest
 
 class RequestService:
     """
-    Service layer handling the lifecycle of ServiceRequests (clean, approve, reject).
+    Domain Service handling administrative workflows for ServiceRequests.
+    
+    This service acts as the intermediary between the API controllers and the 
+    domain logic. It ensures that data remains consistent during approval 
+    workflows and handles the transformation between SQL models and DTOs.
     """
-
-    def __init__(self, repo: RequestRepository):
-        self.repo = RequestRepository()
-
-    def list_active_requests(self):
+    def __init__(self, repo: RequestRepository, whatsapp_provider: WhatsAppProvider):
         """
-        Performs lazy cleanup of expired requests (older than 24h) 
-        and returns the list of currently valid pending requests.
+        Initializes the service with required infrastructure dependencies.
+        
+        Args:
+            repo (RequestRepository): Persistence layer for ServiceRequest entities.
+            whatsapp_provider (WhatsAppProvider): Interface for external notifications.
+        """
+        self.repo = repo
+        self.whatsapp_provider = whatsapp_provider
+
+    def handle_ai_analysis(self, message: IncomingMessageDTO, analysis: AIAnalysisDTO):
+        """
+        Applies business filtering to AI analysis results.
+        
+        Evaluates the detected intent and determines if the interaction should 
+        be escalated to a formal ServiceRequest in the database.
+        
+        Args:
+            message (IncomingMessageDTO): The original message context.
+            analysis (AIAnalysisDTO): Intelligence extracted by the LLM.
+        """
+        if analysis.intent in ["alterar_nif", "alterar_morada"]:
+            new_request = ServiceRequest(
+                wa_id=message.wa_id,
+                customer_name=message.sender_name,
+                intent=analysis.intent,
+                user_input=message.message_body,
+                field_value=analysis.field_value,
+                generated_response=analysis.response_draft,
+                status='PENDING'
+            )
+            self.repo.add(new_request)
+            logging.info(f"Service request created for intent: {analysis.intent}")
+
+    def list_active_requests(self) -> list[ServiceRequestDTO]:
+        """
+        Retrieves pending requests and enriches them with simulation data.
+        
+        This method uses the Command Pattern to execute intent-specific simulations 
+        (e.g., checking current NIF in a legacy system) before returning 
+        the data to the dashboard.
         
         Returns:
-            list[dict]: A list of dictionaries ready for JSON response.
+            list[ServiceRequestDTO]: A collection of validated, display-ready objects.
         """
-
-        # 1. Fetch Data
         requests = self.repo.get_all_pending()
 
-        # 2. Transform Data (DTO pattern using Command Pattern)
         output = []
         for r in requests:
-            # Get the appropriate command for the intent and execute it
             command = CommandFactory.get_command(r.intent)
             simulation_data = command.execute(r)
             
-            output.append({
-                "id": r.id,
-                "customer": r.customer_name,
-                "wa_id": r.wa_id,
-                "intent": r.intent,
-                "field_value": r.field_value,
-                "user_input": r.user_input,
-                "response_text": r.generated_response,
-                "date": r.created_at.strftime("%Y-%m-%d %H:%M"),
-                "system_simulation": simulation_data
-            })
+            output.append(ServiceRequestDTO(
+                id=r.id,
+                customer=r.customer_name,
+                wa_id=r.wa_id,
+                intent=r.intent,
+                field_value=r.field_value,
+                user_input=r.user_input,
+                response_text=r.generated_response,
+                date=r.created_at.strftime("%Y-%m-%d %H:%M"),
+                system_simulation=simulation_data
+            ))
         return output
 
-    def process_approval(self, request_id: int, response_text: str = None):
+    def process_approval(self, request_id: int, override_text: str = None) -> bool:
         """
-        Approves a request, updates the status, and sends a WhatsApp confirmation.
+        Finalizes a request and dispatches the final response to the user.
+        
+        Transitions the request state to 'APPROVED' and synchronizes the 
+        decision with the user via WhatsApp.
         
         Args:
-            request_id (int): The ID of the request to approve.
-            response_text (str): Optional override for the response message.
+            request_id (int): Database identifier of the target request.
+            override_text (str, optional): Custom message text from the admin.
             
         Returns:
-            bool: True if successful.
+            bool: Success status of the outbound notification.
             
         Raises:
-            ValueError: If request is not in PENDING state.
-            Exception: If WhatsApp sending fails.
+            ValueError: If the request state is not 'PENDING'.
         """
         req = self.repo.get_by_id(request_id)
 
         if req.status != 'PENDING':
             raise ValueError("Request already processed")
 
-        # Business Logic
-        final_text = response_text or req.generated_response
-        req.status = 'APPROVED'
-        req.generated_response = final_text
+        final_text = override_text or req.generated_response
 
-        # External Integration
-        data = get_text_message_input(req.wa_id, req.generated_response)
-        response = send_message(data)
+        success = self.whatsapp_provider.send_text_message(
+            recipient_id=req.wa_id,
+            message_text=final_text
+        )
 
-        if response.status_code == 200:
+        if success:
+            req.status = 'APPROVED'
+            req.generated_response = final_text
+            req.processed_at = datetime.utcnow()
             self.repo.save()
             return True
-        else:
-            raise Exception("Failed to send WhatsApp message")
+        
+        return False
 
-    def process_rejection(self, request_id: int, response_text: str = None):
+    def process_rejection(self, request_id: int, override_text: str = None) -> bool:
         """
-        Rejects a request and notifies the client via WhatsApp.
+        Rejects a request and notifies the user of the decision.
+        
+        Transitions the request state to 'REJECTED'. Notification failure 
+        does not roll back the database state.
         
         Args:
-            request_id (int): The ID of the request to reject.
-            response_text (str): Optional rejection reason.
-            
-        Returns:
-            bool: True if processed successfully.
+            request_id (int): Database identifier of the target request.
+            override_text (str, optional): Custom rejection reason.
         """
         req = self.repo.get_by_id(request_id)
 
         if req.status != 'PENDING':
              raise ValueError("Request already processed")
 
-        final_text = response_text or "O seu pedido não pôde ser processado."
+        final_text = override_text or "O seu pedido não pôde ser processado."
+        
+        self.whatsapp_provider.send_text_message(req.wa_id, final_text)
+
         req.status = 'REJECTED'
         req.generated_response = final_text
-
-        # External Integration (Fail-safe)
-        try:
-            data = get_text_message_input(req.wa_id, final_text)
-            send_message(data)
-        except Exception as e:
-            print(f"Warning: Failed to send rejection message: {e}")
-
+        req.processed_at = datetime.utcnow()
         self.repo.save()
         return True
