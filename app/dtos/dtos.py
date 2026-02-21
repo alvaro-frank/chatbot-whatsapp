@@ -1,5 +1,5 @@
 # ==============================================================================
-# FILE: app/dtos/whatsapp_dto.py
+# FILE: app/dtos/dtos.py
 # DESCRIPTION: Pydantic models for data validation and transfer.
 # ==============================================================================
 

@@ -3,7 +3,7 @@
 # DESCRIPTION: Logic to parse raw WhatsApp webhook JSON into a DTO.
 # ==============================================================================
 
-from app.dtos.whatsapp_dto import IncomingMessageDTO
+from app.dtos.dtos import IncomingMessageDTO
 
 def parse_whatsapp_message(body: dict) -> IncomingMessageDTO:
     """

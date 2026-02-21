@@ -8,7 +8,7 @@ import json
 import logging
 from groq import Groq
 from app.domain.interfaces import LLMProvider
-from app.dtos.whatsapp_dto import AIAnalysisDTO
+from app.dtos.dtos import AIAnalysisDTO
 
 class GroqAdapter(LLMProvider):
     """

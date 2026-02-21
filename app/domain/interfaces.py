@@ -7,7 +7,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from app.dtos.whatsapp_dto import AIAnalysisDTO
+from app.dtos.dtos import AIAnalysisDTO
 
 class LLMProvider(ABC):
     """

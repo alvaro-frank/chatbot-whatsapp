@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 from app.services.whatsapp_service import WhatsAppService
-from app.dtos.whatsapp_dto import IncomingMessageDTO
+from app.dtos.dtos import IncomingMessageDTO
 
 def test_process_incoming_message_ignores_outro_intent():
     mock_repo = MagicMock()

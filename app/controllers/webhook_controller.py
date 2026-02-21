@@ -10,7 +10,7 @@ import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
 from app.utils.whatsapp_parser import parse_whatsapp_message
-from app.dtos.whatsapp_dto import IncomingMessageDTO
+from app.dtos.dtos import IncomingMessageDTO
 from app.infrastructure.groq_adapter import GroqAdapter
 from app.infrastructure.meta_whatsapp_adapter import MetaWhatsAppAdapter
 from app.repositories.request_repository import RequestRepository

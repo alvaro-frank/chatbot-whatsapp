@@ -8,7 +8,7 @@
 import logging
 from app.domain.interfaces import LLMProvider, WhatsAppProvider
 from app.services.request_service import RequestService
-from app.dtos.whatsapp_dto import IncomingMessageDTO, AIAnalysisDTO
+from app.dtos.dtos import IncomingMessageDTO, AIAnalysisDTO
 
 class WhatsAppService:
     """

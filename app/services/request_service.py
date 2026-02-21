@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from app.domain.interfaces import WhatsAppProvider
 from app.repositories.request_repository import RequestRepository
-from app.dtos.whatsapp_dto import IncomingMessageDTO, AIAnalysisDTO, ServiceRequestDTO
+from app.dtos.dtos import IncomingMessageDTO, AIAnalysisDTO, ServiceRequestDTO
 from app.commands.command_factory import CommandFactory
 from app.models import ServiceRequest
 

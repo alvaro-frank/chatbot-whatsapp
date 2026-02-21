@@ -1,6 +1,6 @@
 import pytest
 from app.utils.whatsapp_parser import parse_whatsapp_message
-from app.dtos.whatsapp_dto import IncomingMessageDTO
+from app.dtos.dtos import IncomingMessageDTO
 
 def test_parse_whatsapp_message_success():
     # Dados de exemplo simulando o webhook da Meta
