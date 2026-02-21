@@ -1,13 +1,20 @@
 # ==============================================================================
-# FILE: app/utils/whatsapp_parser.py
-# DESCRIPTION: Logic to parse raw WhatsApp webhook JSON into a DTO.
+# FILE: app/infrastructure/mappers.py
+# DESCRIPTION: Data mappers for infrastructure-to-domain transformation.
+#              Responsible for translating external payloads (Meta JSON) into 
+#              internal Data Transfer Objects (DTOs).
 # ==============================================================================
 
+import logging
 from app.dtos.dtos import IncomingMessageDTO
 
-def parse_whatsapp_message(body: dict) -> IncomingMessageDTO:
+def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
     """
-    Parses the complex Meta JSON structure into a clean DTO.
+    Translates Meta's complex JSON structure into a clean IncomingMessageDTO.
+    
+    Returns:
+        IncomingMessageDTO: If the payload contains a valid text message.
+        None: If the payload is a status update (delivered/read) or unsupported type.
     """
     try:
         entry = body["entry"][0]["changes"][0]["value"]

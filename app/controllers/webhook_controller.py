@@ -9,7 +9,7 @@
 import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
-from app.utils.whatsapp_parser import parse_whatsapp_message
+from app.infrastructure.mappers import map_whatsapp_json_to_dto
 from app.dtos.dtos import IncomingMessageDTO
 from app.infrastructure.groq_adapter import GroqAdapter
 from app.infrastructure.meta_whatsapp_adapter import MetaWhatsAppAdapter
@@ -63,7 +63,7 @@ def handle_webhook():
     """
     body = request.get_json()
     try:
-        message_dto = parse_whatsapp_message(body)
+        message_dto = map_whatsapp_json_to_dto(body)
         
         repo = RequestRepository()
         
