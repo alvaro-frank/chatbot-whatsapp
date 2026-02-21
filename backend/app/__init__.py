@@ -5,7 +5,7 @@ from app.controllers.requests_controller import requests_blueprint
 from app.infrastructure.database import db
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, instance_relative_config=True)
 
     load_configurations(app)
     configure_logging()
@@ -16,6 +16,7 @@ def create_app():
     app.register_blueprint(requests_blueprint)
     
     with app.app_context():
+        from app.domain.models import ServiceRequest
         db.create_all()
 
     return app

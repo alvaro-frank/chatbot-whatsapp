@@ -29,7 +29,11 @@ def load_configurations(app):
     app.config["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
     
     # Database
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///chatbot.db')
+    basedir = os.path.abspath(os.path.dirname(__file__)) # pasta app/
+    instance_path = os.path.join(os.path.dirname(basedir), 'instance')
+    db_path = os.path.join(instance_path, 'chatbot.db')
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{db_path}')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
