@@ -20,14 +20,22 @@ def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
                     if the structure does not match the expected message format.
     """
     try:
-        entry = body["entry"][0]["changes"][0]["value"]
-        contact = entry["contacts"][0]
-        message = entry["messages"][0]
+        value = body["entry"][0]["changes"][0]["value"]
+        
+        if "messages" not in value or "contacts" not in value:
+            return None
+            
+        contact = value["contacts"][0]
+        message = value["messages"][0]
+        
+        if message.get("type") != "text":
+            logging.info(f"Unsupported message type: {message.get('type')}")
+            return None
 
         return IncomingMessageDTO(
             wa_id=contact["wa_id"],
             sender_name=contact["profile"]["name"],
             message_body=message["text"]["body"]
         )
-    except (KeyError, IndexError) as e:
-        raise ValueError(f"Invalid WhatsApp message format: {e}")
+    except (KeyError, IndexError):
+        return None
