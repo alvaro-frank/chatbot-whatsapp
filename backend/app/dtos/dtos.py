@@ -5,6 +5,13 @@ class AIAnalysisDTO(BaseModel):
     """
     Data Transfer Object for structured AI analysis results.
     Ensures the LLM response contains all necessary fields.
+
+    Attributes:
+        detected_language (str): ISO 639-1 language code identified by the AI (e.g., 'pt', 'en').
+        intent (str): The specific business intent classified from the text.
+        field_value (Optional[str]): The extracted entity value relevant to the intent (e.g., a NIF or Email).
+        confidence_score (float): Probability score of the classification, ranging from 0.0 to 1.0.
+        response_draft (str): A preliminary response message prepared for the customer.
     """
     model_config = ConfigDict(frozen=True)
 
@@ -17,22 +24,33 @@ class AIAnalysisDTO(BaseModel):
 class IncomingMessageDTO(BaseModel):
     """
     Data Transfer Object representing a validated incoming WhatsApp message.
+
+    Attributes:
+        wa_id (str): The unique WhatsApp identifier (usually the phone number) of the sender.
+        sender_name (str): The display name or profile name provided by the messaging platform.
+        message_body (str): The raw text content of the received message.
     """
     model_config = ConfigDict(frozen=True)
 
     wa_id: str = Field(..., description="WhatsApp ID of the sender")
     sender_name: str = Field(..., description="Full name of the sender")
     message_body: str = Field(..., description="Content of the message sent")
-
-    @property
-    def first_name(self) -> str:
-        """Extracts the first name from the full sender name."""
-        return self.sender_name.split()[0] if self.sender_name else ""
     
 class RequestDTO(BaseModel):
     """
     Data Transfer Object for displaying service requests in the dashboard.
     Standardizes the output for the Frontend.
+
+    Attributes:
+        id (str): The UUID string identifying the request record.
+        customer (str): The full name of the customer associated with the request.
+        wa_id (str): The WhatsApp ID used for communication.
+        intent (str): The label for the customer's request type.
+        field_value (Optional[str]): The specific data value being changed or queried.
+        user_input (Optional[str]): The original message sent by the user for context.
+        response_text (str): The final text content intended for delivery to the user.
+        date (str): The ISO-8601 or custom formatted date string of the request.
+        system_simulation (Dict[str, Any]): Metadata or simulated state changes resulting from the request.
     """
     model_config = ConfigDict(frozen=True)
 
