@@ -1,8 +1,3 @@
-# ==============================================================================
-# FILE: app/dtos/dtos.py
-# DESCRIPTION: Pydantic models for data validation and transfer.
-# ==============================================================================
-
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Any, Dict
 
@@ -34,14 +29,14 @@ class IncomingMessageDTO(BaseModel):
         """Extracts the first name from the full sender name."""
         return self.sender_name.split()[0] if self.sender_name else ""
     
-class ServiceRequestDTO(BaseModel):
+class RequestDTO(BaseModel):
     """
     Data Transfer Object for displaying service requests in the dashboard.
     Standardizes the output for the Frontend.
     """
     model_config = ConfigDict(frozen=True)
 
-    id: int = Field(..., description="Unique database ID of the request")
+    id: str = Field(..., description="Unique database ID of the request")
     customer: str = Field(..., description="Full name of the customer")
     wa_id: str = Field(..., description="WhatsApp phone number ID")
     intent: str = Field(..., description="Classified intent (e.g., alterar_nif)")
