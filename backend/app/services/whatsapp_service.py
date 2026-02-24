@@ -1,10 +1,3 @@
-# ==============================================================================
-# FILE: app/services/whatsapp_service.py
-# DESCRIPTION: Application Orchestrator for the WhatsApp conversational flow.
-#              This service coordinates the interaction between AI analysis,
-#              domain logic, and messaging providers without being coupled 
-#              to specific infrastructure implementations.
-# ==============================================================================
 import logging
 from app.domain.interfaces import LLMProvider, WhatsAppProvider
 from app.services.request_service import RequestService
