@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from app.domain.interfaces import WhatsAppProvider
 from app.infrastructure.persistence_adapters.request_repository import RequestRepository
-from app.dtos.dtos import IncomingMessageDTO, AIAnalysisDTO, ServiceRequestDTO
+from app.dtos.dtos import IncomingMessageDTO, AIAnalysisDTO, RequestDTO
 from app.commands.command_factory import CommandFactory
 from app.domain.entities import Request
 import uuid
@@ -34,7 +34,7 @@ class RequestService:
             self.repo.save(new_request)
             logging.info(f"Service request created for intent: {analysis.intent}")
 
-    def list_active_requests(self) -> list[ServiceRequestDTO]:
+    def list_active_requests(self) -> list[RequestDTO]:
         """
 
         """
@@ -45,7 +45,7 @@ class RequestService:
             command = CommandFactory.get_command(r.intent)
             simulation_data = command.execute(r)
             
-            output.append(ServiceRequestDTO(
+            output.append(RequestDTO(
                 id=str(r.uid),
                 customer=r.customer_name,
                 wa_id=r.wa_id,
