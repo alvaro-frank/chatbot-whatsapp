@@ -1,13 +1,8 @@
-# ==============================================================================
-# FILE: app/domain/interfaces.py
-# DESCRIPTION: Abstract Base Classes (Interfaces) for the Domain Layer.
-#              This file implements the Dependency Inversion Principle, 
-#              ensuring that business logic does not depend on infrastructure 
-#              details (adapters).
-# ==============================================================================
-
 from abc import ABC, abstractmethod
 from app.dtos.dtos import AIAnalysisDTO
+import uuid
+from typing import Optional, List
+from app.domain.entities import Request
 
 class LLMProvider(ABC):
     """
@@ -63,5 +58,27 @@ class WhatsAppProvider(ABC):
         Note:
             Implementations should handle low-level concerns like JSON 
             serialization and HTTP headers.
+        """
+        pass
+    
+class IRequestRepository(ABC):
+    @abstractmethod
+    def get_by_id(self, uid: uuid.UUID) -> Optional[Request]:
+        """
+        Fetches a single request by its primary key.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_pending(self) -> List[Request]:
+        """
+        Retrieves all Requests with 'PENDING' status.
+        """
+        pass
+
+    @abstractmethod
+    def save(self, request: Request) -> None:
+        """
+        Saves or updates a request in the database.
         """
         pass
