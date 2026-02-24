@@ -1,13 +1,7 @@
-# ==============================================================================
-# FILE: app/infrastructure/meta_whatsapp_adapter.py
-# DESCRIPTION: Infrastructure Adapter for Meta's WhatsApp Business Graph API.
-#              Implements the WhatsAppProvider interface to decouple the 
-#              messaging transport logic from the domain core.
-# ==============================================================================
-
 import requests
 import logging
-from app.domain.interfaces import WhatsAppProvider
+from app.domain.interfaces import WhatsAppProvider, NotificationDeliveryError
+import httpx
 
 class MetaWhatsAppAdapter(WhatsAppProvider):
     """
@@ -27,13 +21,13 @@ class MetaWhatsAppAdapter(WhatsAppProvider):
             version (str): The Meta Graph API version (default is v24.0).
         """
         self.token = token
-        self.url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
+        self.base_url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
         self.headers = {
             "Content-type": "application/json",
             "Authorization": f"Bearer {self.token}",
         }
 
-    def send_text_message(self, recipient_id: str, message_text: str) -> bool:
+    def send_text_message(self, recipient_id: str, message_text: str) -> None:
         """
         Dispatches a standardized text message through Meta's infrastructure.
         
@@ -43,26 +37,26 @@ class MetaWhatsAppAdapter(WhatsAppProvider):
         Args:
             recipient_id (str): The target phone number in international format.
             message_text (str): The content of the message to be delivered.
-            
-        Returns:
-            bool: True if the API returns a 2xx status code, False otherwise.
-            
-        Note:
-            We use a 10-second timeout to prevent blocking the service 
-            in case of network congestion or API latency.
         """
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json"
+        }
+        
         payload = {
             "messaging_product": "whatsapp",
-            "recipient_type": "individual",
             "to": recipient_id,
             "type": "text",
-            "text": {"preview_url": False, "body": message_text},
+            "text": {"body": message_text}
         }
 
         try:
-            response = requests.post(self.url, json=payload, headers=self.headers, timeout=10)
+            response = httpx.post(self.base_url, headers=headers, json=payload, timeout=10.0)
             response.raise_for_status()
-            return True
-        except requests.exceptions.RequestException as e:
-            logging.error(f"❌ Meta API Error: {e}")
-            return False
+            
+            logging.info(f"WhatsApp message successfully sent to {recipient_id}")
+            return None
+            
+        except Exception as e:
+            logging.error(f"❌ Meta API Error: Fail sending message to {recipient_id}. Details: {str(e)}")
+            raise NotificationDeliveryError(f"Failed to send WhatsApp message: {e}")

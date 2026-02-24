@@ -1,20 +1,23 @@
-# ==============================================================================
-# FILE: app/infrastructure/mappers.py
-# DESCRIPTION: Data mappers for infrastructure-to-domain transformation.
-#              Responsible for translating external payloads (Meta JSON) into 
-#              internal Data Transfer Objects (DTOs).
-# ==============================================================================
-
 import logging
 from app.dtos.dtos import IncomingMessageDTO
 
 def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
     """
     Translates Meta's complex JSON structure into a clean IncomingMessageDTO.
-    
+
+    This function acts as a Data Mapper, specifically handling the Webhook 
+    notification format from the Meta Graph API. It extracts identity and 
+    content while ignoring non-message metadata (like status updates).
+
+    Args:
+        body (dict): The raw JSON payload received from the WhatsApp Webhook.
+
     Returns:
-        IncomingMessageDTO: If the payload contains a valid text message.
-        None: If the payload is a status update (delivered/read) or unsupported type.
+        IncomingMessageDTO: A validated object containing sender info and text.
+
+    Raises:
+        ValueError: If the required keys (wa_id, name, or body) are missing or 
+                    if the structure does not match the expected message format.
     """
     try:
         entry = body["entry"][0]["changes"][0]["value"]

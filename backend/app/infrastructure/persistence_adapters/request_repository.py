@@ -7,12 +7,21 @@ from app.infrastructure.persistence_adapters.orm_models import RequestORM
 
 class RequestRepository(IRequestRepository):
     """
+    SQLAlchemy implementation of the Request Repository.
     
+    Handles the persistence logic for Request entities, including the mapping 
+    between Domain Entities and ORM Models (Data Mappers).
     """
 
     def _to_domain(self, orm_model: Optional[RequestORM]) -> Optional[Request]:
         """
+        Maps a database-specific ORM model to a pure Domain Entity.
         
+        Args:
+            orm_model (Optional[RequestORM]): The database record.
+            
+        Returns:
+            Optional[Request]: The domain-valid Request object or None.
         """
         if not orm_model:
             return None
@@ -32,7 +41,14 @@ class RequestRepository(IRequestRepository):
 
     def _to_orm(self, domain_entity: Request, orm_model: Optional[RequestORM] = None) -> RequestORM:
         """
+        Maps a Domain Entity to a database-specific ORM model.
         
+        Args:
+            domain_entity (Request): The domain object to be persisted.
+            orm_model (Optional[RequestORM]): An existing ORM instance for updates.
+            
+        Returns:
+            RequestORM: The prepared ORM model ready for SQLAlchemy session.
         """
         if not orm_model:
             orm_model = RequestORM(uid=str(domain_entity.uid))
@@ -51,21 +67,38 @@ class RequestRepository(IRequestRepository):
 
     def get_by_id(self, uid: uuid.UUID) -> Optional[Request]:
         """
+        Retrieves a Request by its UUID and converts it to a Domain Entity.
         
+        Args:
+            uid (uuid.UUID): The unique identifier of the request.
+            
+        Returns:
+            Optional[Request]: The domain entity if found, otherwise None.
         """
         orm_model = db.session.query(RequestORM).filter_by(uid=str(uid)).first()
         return self._to_domain(orm_model)
 
     def get_all_pending(self) -> List[Request]:
         """
+        Queries the database for all records with a 'PENDING' status.
         
+        Returns:
+            List[Request]: A list of domain entities awaiting processing.
         """
         orm_models = db.session.query(RequestORM).filter_by(status=RequestStatus.PENDING.value).all()
         return [self._to_domain(m) for m in orm_models]
 
     def save(self, request: Request) -> None:
         """
+        Perists a Request entity to the database (Upsert logic).
         
+        If the record exists, it is updated; otherwise, a new record is created.
+        
+        Args:
+            request (Request): The domain entity to save.
+            
+        Raises:
+            RuntimeError: If a database error occurs during commit.
         """
         orm_model = db.session.query(RequestORM).filter_by(uid=str(request.uid)).first()
         

@@ -1,14 +1,9 @@
-# ==============================================================================
-# FILE: app/infrastructure/groq_adapter.py
-# DESCRIPTION: Infrastructure Adapter for Groq Cloud AI services.
-#              Implements the LLMProvider interface to provide structured 
-#              natural language processing capabilities using Llama-based models.
-# ==============================================================================
 import json
 import logging
 from groq import Groq
 from app.domain.interfaces import LLMProvider
 from app.dtos.dtos import AIAnalysisDTO
+from app.domain.entities import MessageAnalysis
 
 class GroqAdapter(LLMProvider):
     """
@@ -34,23 +29,25 @@ class GroqAdapter(LLMProvider):
         self.client = Groq(api_key=api_key)
         self.model = model
 
-    def analyze_message(self, message_body: str, user_name: str) -> AIAnalysisDTO:
+    def analyze_message(self, message_body: str, user_name: str) -> MessageAnalysis:
         """
-        Processes a raw user message through the LLM to extract domain insights.
+        Sends the user message to Groq for NLU (Natural Language Understanding) processing.
         
-        Utilizes 'JSON Mode' to ensure the model output is a valid JSON object 
-        that conforms to the AIAnalysisDTO schema.
-        
+        This method orchestrates the full analysis flow:
+        1. Generates a contextual system prompt.
+        2. Calls the Groq Chat Completion API with JSON mode enabled.
+        3. Validates the raw JSON output against the AIAnalysisDTO schema.
+        4. Maps the validated DTO to a Domain Entity (MessageAnalysis).
+
         Args:
-            message_body (str): Raw text sent by the user via WhatsApp.
-            user_name (str): Sender's name used for personalized prompting.
-            
+            message_body (str): The raw text sent by the customer.
+            user_name (str): The name of the customer for personalized AI responses.
+
         Returns:
-            AIAnalysisDTO: Validated DTO containing intent and extracted entities.
-            
+            MessageAnalysis: A domain-layer entity containing the structured results.
+
         Raises:
-            ConnectionError: If the Groq API is unreachable or returns an error.
-            ValidationError: (Implicitly) If the LLM output violates the DTO schema.
+            ConnectionError: If the API call fails or the response cannot be parsed.
         """
         prompt = self._get_system_prompt(user_name, message_body)
         
@@ -66,8 +63,16 @@ class GroqAdapter(LLMProvider):
             )
             
             response_content = completion.choices[0].message.content
-            # O Pydantic valida automaticamente o JSON vindo da IA
-            return AIAnalysisDTO.model_validate_json(response_content)
+            
+            validated_dto = AIAnalysisDTO.model_validate_json(response_content)
+            
+            return MessageAnalysis(
+                detected_language=validated_dto.detected_language,
+                intent=validated_dto.intent,
+                field_value=validated_dto.field_value,
+                confidence_score=validated_dto.confidence_score,
+                response_draft=validated_dto.response_draft
+            )
 
         except Exception as e:
             logging.error(f"❌ Groq Adapter Error: {e}")
