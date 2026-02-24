@@ -1,9 +1,3 @@
-# ==============================================================================
-# FILE: app/config.py
-# DESCRIPTION: Application configuration management.
-#              Loads environment variables and sets Flask app settings.
-# ==============================================================================
-
 import sys
 import os
 from dotenv import load_dotenv
@@ -29,7 +23,7 @@ def load_configurations(app):
     app.config["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
     
     # Database
-    basedir = os.path.abspath(os.path.dirname(__file__)) # pasta app/
+    basedir = os.path.abspath(os.path.dirname(__file__))
     instance_path = os.path.join(os.path.dirname(basedir), 'instance')
     db_path = os.path.join(instance_path, 'chatbot.db')
     
