@@ -2,7 +2,7 @@ import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
 # Mappers
-from app.infrastructure.web_adapters.mappers import map_whatsapp_json_to_dto
+from app.infrastructure.mappers import map_whatsapp_json_to_dto
 # Domain
 from app.domain.entities import ReceivedMessage
 # Use Cases
