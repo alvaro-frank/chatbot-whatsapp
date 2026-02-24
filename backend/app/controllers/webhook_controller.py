@@ -1,21 +1,16 @@
-# ==============================================================================
-# FILE: app/controllers/webhook_controller.py
-# DESCRIPTION: Entry point for Meta's WhatsApp Webhook events.
-#              Handles security handshakes (GET) and incoming messaging 
-#              orchestration (POST). Ensures all raw payloads are parsed into 
-#              typed DTOs before entering the domain layer.
-# ==============================================================================
-
 import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
+# Mappers
 from app.infrastructure.web_adapters.mappers import map_whatsapp_json_to_dto
-from app.dtos.dtos import IncomingMessageDTO
+# Domain
+from app.domain.entities import ReceivedMessage
+# Use Cases
+from app.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
+# Adapters 
 from app.infrastructure.web_adapters.groq_adapter import GroqAdapter
 from app.infrastructure.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
 from app.infrastructure.persistence_adapters.request_repository import RequestRepository
-from app.services.request_service import RequestService
-from app.services.whatsapp_service import WhatsAppService
 
 webhook_blueprint = Blueprint("webhook", __name__)
 
@@ -25,7 +20,8 @@ def verify_webhook():
     Handles Meta's Webhook verification challenge (Handshake).
     
     Meta sends a GET request with a hub.verify_token to ensure the 
-    endpoint is valid and owned by the developer.
+    endpoint is valid and owned by the developer. This is only required 
+    during the initial setup or configuration changes in the Meta Dashboard.
     
     Returns:
         tuple: (challenge string, status code) if verified, 
@@ -46,43 +42,41 @@ def verify_webhook():
 @signature_required
 def handle_webhook():
     """
-    Processes incoming WhatsApp events (messages, statuses, etc.).
+    Main entry point for incoming WhatsApp messages and notifications.
     
-    This method acts as a Factory/Assembler, manually injecting 
-    dependencies into the Service layer. It transforms raw JSON 
-    payloads into structured IncomingMessageDTOs.
-    
-    Logic Flow:
-    1. Parse JSON into DTO.
-    2. Instantiate Repository and Infrastructure Adapters.
-    3. Assemble Domain Services via Dependency Injection.
-    4. Execute business orchestration.
+    This endpoint is protected by the @signature_required decorator to ensure 
+    request authenticity. It maps the complex Meta JSON to a DTO, converts it 
+    to a Domain Entity, and triggers the message processing Use Case.
 
     Returns:
-        JSON: Standard 200 OK response required by Meta to avoid retries.
+        tuple: JSON status and HTTP 200 (Meta requires a 200 OK even if 
+               processing fails internally to stop retries).
     """
     body = request.get_json()
+    
     try:
         message_dto = map_whatsapp_json_to_dto(body)
-        
+        if not message_dto:
+            return jsonify({"status": "ignored"}), 200
+
+        domain_message = ReceivedMessage(
+            sender_id=message_dto.wa_id,
+            sender_name=message_dto.sender_name,
+            content=message_dto.message_body
+        )
+
         repo = RequestRepository()
-        
         llm_provider = GroqAdapter(api_key=current_app.config["GROQ_API_KEY"])
-        whatsapp_provider = MetaWhatsAppAdapter(
-            token=current_app.config["ACCESS_TOKEN"],
-            phone_number_id=current_app.config["PHONE_NUMBER_ID"]
-        )
         
-        req_service = RequestService(repo=repo, whatsapp_provider=whatsapp_provider)
-        service = WhatsAppService(
+        use_case = ProcessIncomingMessageUseCase(
             llm_provider=llm_provider, 
-            whatsapp_provider=whatsapp_provider,
-            request_service=req_service
+            repo=repo
         )
         
-        service.process_incoming_message(message_dto)
+        use_case.execute(domain_message)
         
     except Exception as e:
-        logging.error(f"Error processing Webhook: {e}")
+        logging.error(f"Error handling webhook: {e}", exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 200
 
     return jsonify({"status": "ok"}), 200
