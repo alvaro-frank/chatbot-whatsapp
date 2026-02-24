@@ -9,11 +9,11 @@
 import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.decorators.security import signature_required
-from app.infrastructure.mappers import map_whatsapp_json_to_dto
+from app.infrastructure.web_adapters.mappers import map_whatsapp_json_to_dto
 from app.dtos.dtos import IncomingMessageDTO
-from app.infrastructure.groq_adapter import GroqAdapter
-from app.infrastructure.meta_whatsapp_adapter import MetaWhatsAppAdapter
-from app.repositories.request_repository import RequestRepository
+from app.infrastructure.web_adapters.groq_adapter import GroqAdapter
+from app.infrastructure.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
+from app.infrastructure.persistence_adapters.request_repository import RequestRepository
 from app.services.request_service import RequestService
 from app.services.whatsapp_service import WhatsAppService
 

@@ -7,8 +7,8 @@
 
 import logging
 from flask import Blueprint, request, jsonify, current_app
-from app.infrastructure.meta_whatsapp_adapter import MetaWhatsAppAdapter
-from app.repositories.request_repository import RequestRepository
+from app.infrastructure.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
+from app.infrastructure.persistence_adapters.request_repository import RequestRepository
 from app.services.request_service import RequestService
 
 requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
@@ -40,7 +40,7 @@ def list_requests():
     typed DTOs (Data Transfer Objects), ensuring frontend consistency.
     
     Returns:
-        JSON: List of serialized ServiceRequestDTOs.
+        JSON: List of serialized RequestDTOs.
     """
     try:
         service = get_request_service()
@@ -51,7 +51,7 @@ def list_requests():
         logging.error(f"Error listing Requests: {e}")
         return jsonify({"error": str(e)}), 500
 
-@requests_blueprint.route("/<int:request_id>/approve", methods=["POST"])
+@requests_blueprint.route("/<string:request_id>/approve", methods=["POST"])
 def approve_request(request_id):
     """
     Approves a pending request and triggers external notification.
@@ -82,7 +82,7 @@ def approve_request(request_id):
         logging.error(f"Request Approval Error: {e}")
         return jsonify({"status": "error", "message": "Internal server error"}), 500
 
-@requests_blueprint.route("/<int:request_id>/reject", methods=["POST"])
+@requests_blueprint.route("/<string:request_id>/reject", methods=["POST"])
 def reject_request(request_id):
     """
     Rejects a pending request and updates the audit trail.
