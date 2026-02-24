@@ -1,9 +1,3 @@
-# ==============================================================================
-# FILE: app/decorators/security.py
-# DESCRIPTION: Security decorators for request validation.
-#              Ensures requests originate from a trusted source (Meta).
-# ==============================================================================
-
 from functools import wraps
 from flask import current_app, jsonify, request
 import logging
@@ -13,7 +7,18 @@ import hmac
 
 def validate_signature(payload, signature):
     """
-    Validates the SHA256 signature provided by Meta.
+    Validates the SHA256 signature provided by Meta using HMAC.
+    
+    This ensures the request actually originated from Meta and has not been 
+    tampered with during transit. It compares a locally generated hash 
+    with the one sent in the request header.
+
+    Args:
+        payload (str): The raw request body (JSON string).
+        signature (str): The hex-encoded signature extracted from the header.
+
+    Returns:
+        bool: True if signatures match, False otherwise.
     """
     secret = current_app.config.get("APP_SECRET")
     if not secret:
@@ -32,6 +37,16 @@ def validate_signature(payload, signature):
 def signature_required(f):
     """
     Decorator to protect routes by verifying the X-Hub-Signature-256 header.
+    
+    This middleware-style wrapper intercepts the request before it reaches 
+    the controller. If the signature is missing or invalid, it returns a 
+    403 Forbidden response.
+
+    Args:
+        f (function): The view function to be decorated.
+
+    Returns:
+        function: The decorated function that includes signature validation logic.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
