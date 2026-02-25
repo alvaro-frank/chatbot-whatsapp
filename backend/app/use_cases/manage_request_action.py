@@ -1,7 +1,5 @@
 import uuid
-import logging
-from app.domain.interfaces import WhatsAppProvider, NotificationDeliveryError
-from app.infrastructure.persistence_adapters.request_repository import IRequestRepository
+from app.domain.interfaces import WhatsAppProvider, IRequestRepository
 
 class ManageRequestActionUseCase:
     """

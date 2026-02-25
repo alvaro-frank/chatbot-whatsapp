@@ -1,5 +1,5 @@
 import logging
-from app.infrastructure.persistence_adapters.request_repository import IRequestRepository
+from app.domain.interfaces import IRequestRepository
 from app.commands.command_factory import CommandFactory
 from app.dtos.dtos import RequestDTO
 from typing import List

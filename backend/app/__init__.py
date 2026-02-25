@@ -1,25 +1,58 @@
 from flask import Flask
 from flask_cors import CORS
 from app.config import load_configurations, configure_logging
-from app.controllers.webhook_controller import webhook_blueprint
-from app.controllers.requests_controller import requests_blueprint
 from app.infrastructure.database import db
-from app.infrastructure.persistence_adapters import orm_models
+import os
+from app.infrastructure.controllers.requests_controller import register_requests_routes
+from app.infrastructure.controllers.webhook_controller import register_webhook_routes
+from app.infrastructure.persistence_adapters.request_repository import RequestRepository
+from app.infrastructure.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
+from app.use_cases.list_pending_requests import ListPendingRequestsUseCase
+from app.use_cases.manage_request_action import ManageRequestActionUseCase
+from app.infrastructure.web_adapters.groq_adapter import GroqAdapter
+from app.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
     load_configurations(app)
     configure_logging()
+    
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI')
+    if db_uri and db_uri.startswith('sqlite:///'):
+        db_path = db_uri.replace('sqlite:///', '')
+        db_dir = os.path.dirname(db_path)
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir)
 
     CORS(app)
 
     db.init_app(app)
 
-    app.register_blueprint(webhook_blueprint)
-    app.register_blueprint(requests_blueprint)
-
     with app.app_context(): 
+        # Outgoing Adapters
+        repo = RequestRepository()
+        whatsapp = MetaWhatsAppAdapter(
+            token=app.config["ACCESS_TOKEN"],
+            phone_number_id=app.config["PHONE_NUMBER_ID"]
+        )
+        groq = GroqAdapter(api_key=app.config["GROQ_API_KEY"])
+
+        # 2. Use Cases
+        list_uc = ListPendingRequestsUseCase(repo=repo)
+        manage_uc = ManageRequestActionUseCase(repo=repo, whatsapp_provider=whatsapp)
+        process_uc = ProcessIncomingMessageUseCase(
+            repo=repo, 
+            llm_provider=groq
+        )
+        
+        # 3. Ingoing Adapters (Controllers)
+        requests_bp = register_requests_routes(list_uc, manage_uc)
+        webhook_bp = register_webhook_routes(process_uc)
+        
+        app.register_blueprint(requests_bp)      
+        app.register_blueprint(webhook_bp)
+
         db.create_all()
 
     return app

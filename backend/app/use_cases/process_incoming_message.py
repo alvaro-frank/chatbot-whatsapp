@@ -1,8 +1,7 @@
 import logging
-from app.domain.interfaces import LLMProvider
+from app.domain.interfaces import LLMProvider, IRequestRepository
 from app.domain.entities import MessageAnalysis
 from app.domain.entities import Request, ReceivedMessage
-from app.infrastructure.persistence_adapters.request_repository import IRequestRepository
 
 class ProcessIncomingMessageUseCase:
     """
