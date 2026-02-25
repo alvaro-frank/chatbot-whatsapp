@@ -37,11 +37,11 @@ class ManageRequestActionUseCase:
         req = self._get_request(request_id)
         final_text = override_text or req.generated_response
 
-        self.whatsapp_provider.send_text_message(req.wa_id, final_text)
-
         req.approve()
         req.generated_response = final_text
         self.repo.save(req)
+        
+        self.whatsapp_provider.send_text_message(req.wa_id, final_text)
 
     def reject(self, request_id: str, override_text: str = None) -> None:
         """
