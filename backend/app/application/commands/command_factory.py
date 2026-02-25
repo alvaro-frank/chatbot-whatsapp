@@ -8,10 +8,17 @@ class CommandFactory:
     specific command implementations. It maps string-based intents 
     (from the AI layer) to their respective simulation logic.
     """
-    _commands = {
-        "alterar_nif": AlterarNifCommand(),
-        "alterar_morada": AlterarMoradaCommand(),
+    _COMMANDS = {
+        "alterar_nif": AlterarNifCommand,
+        "alterar_morada": AlterarMoradaCommand,
     }
+    
+    @classmethod
+    def is_actionable_intent(cls, intent: str) -> bool:
+        """
+        
+        """
+        return intent in cls._COMMANDS
 
     @staticmethod
     def get_command(intent: str):
@@ -28,4 +35,5 @@ class CommandFactory:
         Returns:
             BaseSimulationCommand: A concrete implementation of the simulation logic.
         """
-        return CommandFactory._commands.get(intent, DefaultSimulationCommand())
+        command_class = CommandFactory._COMMANDS.get(intent, DefaultSimulationCommand)
+        return command_class()

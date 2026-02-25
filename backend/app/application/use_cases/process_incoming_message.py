@@ -2,6 +2,7 @@ import logging
 from app.domain.ports import LLMProvider, IRequestRepository
 from app.domain.entities import MessageAnalysis
 from app.domain.entities import Request, ReceivedMessage
+from app.application.commands.command_factory import CommandFactory
 
 class ProcessIncomingMessageUseCase:
     """
@@ -46,14 +47,18 @@ class ProcessIncomingMessageUseCase:
                 user_name=message.first_name
             )
 
-            if analysis.intent in ["alterar_nif", "alterar_morada"]:
+            if CommandFactory.is_actionable_intent(analysis.intent):
+                command = CommandFactory.get_command(analysis.intent)
+                
+                simulation = command.execute(analysis)
                 new_request = Request(
                     wa_id=message.sender_id,
                     customer_name=message.sender_name,
                     intent=analysis.intent,
                     user_input=message.content,
                     field_value=analysis.field_value,
-                    generated_response=analysis.response_draft
+                    generated_response=analysis.response_draft,
+                    simulation_data=simulation
                 )
                 self.repo.save(new_request)
                 logging.info(f"Request created: {analysis.intent}")

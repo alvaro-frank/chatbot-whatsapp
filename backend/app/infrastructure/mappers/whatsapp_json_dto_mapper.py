@@ -1,7 +1,8 @@
 import logging
 from app.application.dtos.dtos import IncomingMessageDTO
+from typing import Dict
 
-def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
+def map_whatsapp_json_to_dto(body: Dict) -> IncomingMessageDTO:
     """
     Translates Meta's complex JSON structure into a clean IncomingMessageDTO.
 
@@ -10,7 +11,7 @@ def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
     content while ignoring non-message metadata (like status updates).
 
     Args:
-        body (dict): The raw JSON payload received from the WhatsApp Webhook.
+        body (Dict): The raw JSON payload received from the WhatsApp Webhook.
 
     Returns:
         IncomingMessageDTO: A validated object containing sender info and text.

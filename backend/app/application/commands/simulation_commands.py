@@ -1,4 +1,5 @@
 from app.application.commands.base_command import BaseSimulationCommand
+from typing import Dict
 
 class AlterarNifCommand(BaseSimulationCommand):
     """
@@ -7,12 +8,12 @@ class AlterarNifCommand(BaseSimulationCommand):
     Prepares the metadata required to update a customer's fiscal identification 
     within the CRM system.
     """
-    def execute(self, request_model) -> dict:
+    def execute(self, request_model) -> Dict:
         """
         Generates a simulation payload for a NIF update operation.
 
         Returns:
-            dict: Mapping of the target table, the new NIF value, and the lookup criteria.
+            Dict: Mapping of the target table, the new NIF value, and the lookup criteria.
         """
         return {
             "action": request_model.intent,
@@ -28,12 +29,12 @@ class AlterarMoradaCommand(BaseSimulationCommand):
     Prepares the metadata required to update a customer's physical or 
     billing address in the CRM system.
     """
-    def execute(self, request_model) -> dict:
+    def execute(self, request_model) -> Dict:
         """
         Generates a simulation payload for an address update operation.
 
         Returns:
-            dict: Mapping of the target table, the new address string, and the lookup criteria.
+            Dict: Mapping of the target table, the new address string, and the lookup criteria.
         """
         return {
             "action": request_model.intent,
@@ -49,7 +50,7 @@ class DefaultSimulationCommand(BaseSimulationCommand):
     Prepares the metadata required to update a customer's physical or 
     billing address in the CRM system.
     """
-    def execute(self, request_model) -> dict:
+    def execute(self, request_model) -> Dict:
         """
         Returns an empty result indicating no automated simulation is available.
         """

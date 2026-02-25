@@ -2,7 +2,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
+from typing import Optional, Dict
 
 class RequestStatus(Enum):
     """
@@ -42,6 +42,7 @@ class Request:
     status: RequestStatus = RequestStatus.PENDING
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     processed_at: Optional[datetime] = None
+    simulation_data: Optional[Dict] = None
     uid: uuid.UUID = field(default_factory=uuid.uuid4)
     
     def approve(self):

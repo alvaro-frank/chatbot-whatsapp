@@ -10,7 +10,7 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/admin': {
-        target: 'http://chatbot:8000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       }

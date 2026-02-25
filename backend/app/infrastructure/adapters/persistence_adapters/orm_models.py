@@ -17,6 +17,7 @@ class RequestORM(db.Model):
         field_value (str): The specific piece of data extracted for the update.
         generated_response (str): The draft or final response text prepared for the user.
         status (str): The current lifecycle state (PENDING, APPROVED, REJECTED).
+        simulation_data (JSON): Persisted results from the simulation command.
         created_at (datetime): Timestamp of when the record was first inserted.
         processed_at (Optional[datetime]): Timestamp of when the status was last updated.
     """
@@ -32,6 +33,7 @@ class RequestORM(db.Model):
     generated_response = db.Column(db.Text)
     
     status = db.Column(db.String(20), nullable=False)
+    simulation_data = db.Column(db.JSON, nullable=True)
     
     created_at = db.Column(db.DateTime, nullable=False)
     processed_at = db.Column(db.DateTime, nullable=True)

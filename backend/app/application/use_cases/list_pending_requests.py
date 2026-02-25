@@ -39,9 +39,6 @@ class ListPendingRequestsUseCase:
         output = []
         for r in requests:
             try:
-                command = CommandFactory.get_command(r.intent)
-                simulation_data = command.execute(r)
-
                 output.append(RequestDTO(
                     id=str(r.uid),
                     customer=r.customer_name,
@@ -51,7 +48,7 @@ class ListPendingRequestsUseCase:
                     user_input=r.user_input,
                     response_text=r.generated_response,
                     date=r.created_at.strftime("%Y-%m-%d %H:%M"),
-                    system_simulation=simulation_data
+                    system_simulation=r.simulation_data
                 ))
             except Exception as e:
                 logging.error(f"Erro ao processar simulação para o pedido {r.uid}: {e}")
