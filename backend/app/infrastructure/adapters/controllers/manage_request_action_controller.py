@@ -2,37 +2,19 @@ import logging
 from flask import Blueprint, request, jsonify
 from app.domain.ports import NotificationDeliveryError
 # Use Cases
-from app.application.use_cases.list_pending_requests import ListPendingRequestsUseCase
 from app.application.use_cases.manage_request_action import ManageRequestActionUseCase
 
-requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
+manage_requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
 
-class RequestsController:
+class ManageRequestActionController:
     """
     
     """
-    def __init__(self, list_use_case: ListPendingRequestsUseCase, manage_use_case: ManageRequestActionUseCase):
+    def __init__(self, manage_use_case: ManageRequestActionUseCase):
         """
         
         """
-        self.list_use_case = list_use_case
         self.manage_use_case = manage_use_case
-
-    def list_requests(self):
-        """
-        Endpoint to retrieve all pending customer requests for the dashboard.
-        
-        Transforms domain entities into JSON-serializable DTOs.
-        
-        Returns:
-            JSON: A list of pending requests with simulation data.
-        """
-        try:
-            requests_dtos = self.list_use_case.execute()
-            return jsonify([r.model_dump() for r in requests_dtos]), 200
-        except Exception as e:
-            logging.error(f"Listing Requests error: {e}", exc_info=True)
-            return jsonify({"error": "Dashboard loading error"}), 500
 
     def approve_request(self, request_id):
         """
@@ -78,11 +60,10 @@ class RequestsController:
             logging.error(f"Erro crítico na rejeição: {e}", exc_info=True)
             return jsonify({"status": "error", "message": "Erro interno"}), 500
     
-def register_requests_routes(list_uc, manage_uc):
-    controller = RequestsController(list_uc, manage_uc)
+def register_manage_requests_routes(manage_uc):
+    controller = ManageRequestActionController(manage_uc)
     
-    requests_blueprint.add_url_rule("/", "list_requests", controller.list_requests, methods=["GET"])
-    requests_blueprint.add_url_rule("/<string:request_id>/approve", "approve_request", controller.approve_request, methods=["POST"])
-    requests_blueprint.add_url_rule("/<string:request_id>/reject", "reject_request", controller.reject_request, methods=["POST"])
+    manage_requests_blueprint.add_url_rule("/<string:request_id>/approve", "approve_request", controller.approve_request, methods=["POST"])
+    manage_requests_blueprint.add_url_rule("/<string:request_id>/reject", "reject_request", controller.reject_request, methods=["POST"])
     
-    return requests_blueprint
+    return manage_requests_blueprint

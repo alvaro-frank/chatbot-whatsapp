@@ -8,9 +8,9 @@ from app.domain.entities import ReceivedMessage
 # Use Cases
 from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
-webhook_blueprint = Blueprint("webhook", __name__)
+incoming_message_blueprint = Blueprint("webhook", __name__)
 
-class WebhookController:
+class ProcessIncomingMessageController:
     """
     
     """
@@ -77,19 +77,19 @@ class WebhookController:
 
         return jsonify({"status": "ok"}), 200
 
-def register_webhook_routes(process_use_case):
-    controller = WebhookController(process_use_case)
+def incoming_message_routes(process_use_case):
+    controller = ProcessIncomingMessageController(process_use_case)
     
     # Ligamos os métodos da instância às rotas
-    webhook_blueprint.add_url_rule(
+    incoming_message_blueprint.add_url_rule(
         "/webhook", 
         view_func=controller.verify_webhook, 
         methods=["GET"]
     )
-    webhook_blueprint.add_url_rule(
+    incoming_message_blueprint.add_url_rule(
         "/webhook", 
         view_func=controller.handle_webhook, 
         methods=["POST"]
     )
     
-    return webhook_blueprint
+    return incoming_message_blueprint
