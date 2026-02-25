@@ -12,11 +12,18 @@ incoming_message_blueprint = Blueprint("webhook", __name__)
 
 class ProcessIncomingMessageController:
     """
+    Controller for handling incoming communication from the WhatsApp Business API.
     
+    This class manages the lifecycle of a webhook request, including the initial 
+    verification handshake and the asynchronous processing of user messages.
     """
     def __init__(self, use_case: ProcessIncomingMessageUseCase):
         """
-        
+        Initializes the controller with the message processing use case.
+
+        Args:
+            use_case (ProcessIncomingMessageUseCase): The application service 
+                that orchestrates AI interaction and system state changes.
         """
         self.use_case = use_case
         
@@ -78,9 +85,17 @@ class ProcessIncomingMessageController:
         return jsonify({"status": "ok"}), 200
 
 def incoming_message_routes(process_use_case):
+    """
+    Factory to initialize the controller and register the Webhook routes.
+
+    Args:
+        process_use_case (ProcessIncomingMessageUseCase): The injected use case.
+
+    Returns:
+        Blueprint: The configured Flask blueprint for incoming messages.
+    """
     controller = ProcessIncomingMessageController(process_use_case)
     
-    # Ligamos os métodos da instância às rotas
     incoming_message_blueprint.add_url_rule(
         "/webhook", 
         view_func=controller.verify_webhook, 

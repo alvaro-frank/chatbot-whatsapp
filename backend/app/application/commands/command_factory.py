@@ -16,7 +16,16 @@ class CommandFactory:
     @classmethod
     def is_actionable_intent(cls, intent: str) -> bool:
         """
-        
+        Validates if the provided intent has a specialized command implementation.
+
+        This is used by the orchestration layer to determine if the system should 
+        execute a specific business logic flow or fall back to a general response.
+
+        Args:
+            intent (str): The intent slug identified by the LLM.
+
+        Returns:
+            bool: True if the intent is registered in the factory, False otherwise.
         """
         return intent in cls._COMMANDS
 

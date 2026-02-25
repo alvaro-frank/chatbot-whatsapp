@@ -32,6 +32,7 @@ class Request:
         status (str): status of the request (PENDING, APPROVED, REJECTED)
         created_at (datetime): creation date of the request
         processed_at (datetime): processed date of the request
+        simulation_data (Dict): Results from the simulation command.
     """
     wa_id: str
     customer_name: str
