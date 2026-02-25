@@ -3,7 +3,7 @@ from typing import Optional, List
 from app.domain.ports import IRequestRepository
 from app.domain.entities import Request, RequestStatus
 from app.infrastructure.database import db
-from app.infrastructure.persistence_adapters.orm_models import RequestORM
+from app.infrastructure.adapters.persistence_adapters.orm_models import RequestORM
 
 class RequestRepository(IRequestRepository):
     """
