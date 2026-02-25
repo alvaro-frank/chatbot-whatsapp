@@ -1,9 +1,9 @@
 import logging
 from flask import Blueprint, request, jsonify
-from app.domain.interfaces import NotificationDeliveryError
+from app.domain.ports import NotificationDeliveryError
 # Use Cases
-from app.use_cases.list_pending_requests import ListPendingRequestsUseCase
-from app.use_cases.manage_request_action import ManageRequestActionUseCase
+from app.application.use_cases.list_pending_requests import ListPendingRequestsUseCase
+from app.application.use_cases.manage_request_action import ManageRequestActionUseCase
 
 requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
 

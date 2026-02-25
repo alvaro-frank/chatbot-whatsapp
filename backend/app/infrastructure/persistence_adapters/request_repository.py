@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional, List
-from app.domain.interfaces import IRequestRepository
+from app.domain.ports import IRequestRepository
 from app.domain.entities import Request, RequestStatus
 from app.infrastructure.database import db
 from app.infrastructure.persistence_adapters.orm_models import RequestORM

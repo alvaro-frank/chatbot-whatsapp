@@ -1,7 +1,7 @@
 import logging
-from app.domain.interfaces import IRequestRepository
-from app.commands.command_factory import CommandFactory
-from app.dtos.dtos import RequestDTO
+from app.domain.ports import IRequestRepository
+from app.application.commands.command_factory import CommandFactory
+from app.application.dtos.dtos import RequestDTO
 from typing import List
 
 class ListPendingRequestsUseCase:

@@ -1,5 +1,5 @@
 import logging
-from app.domain.interfaces import LLMProvider, IRequestRepository
+from app.domain.ports import LLMProvider, IRequestRepository
 from app.domain.entities import MessageAnalysis
 from app.domain.entities import Request, ReceivedMessage
 

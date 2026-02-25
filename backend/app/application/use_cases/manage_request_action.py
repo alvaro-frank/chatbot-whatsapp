@@ -1,5 +1,5 @@
 import uuid
-from app.domain.interfaces import WhatsAppProvider, IRequestRepository
+from app.domain.ports import WhatsAppProvider, IRequestRepository
 
 class ManageRequestActionUseCase:
     """

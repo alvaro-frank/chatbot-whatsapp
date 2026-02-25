@@ -1,4 +1,4 @@
-from app.commands.base_command import BaseSimulationCommand
+from app.application.commands.base_command import BaseSimulationCommand
 
 class AlterarNifCommand(BaseSimulationCommand):
     """

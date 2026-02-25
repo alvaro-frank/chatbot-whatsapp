@@ -6,7 +6,7 @@ from app.infrastructure.mappers.whatsapp_json_dto_mapper import map_whatsapp_jso
 # Domain
 from app.domain.entities import ReceivedMessage
 # Use Cases
-from app.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
+from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
 webhook_blueprint = Blueprint("webhook", __name__)
 

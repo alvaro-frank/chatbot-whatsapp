@@ -7,10 +7,10 @@ from app.infrastructure.controllers.requests_controller import register_requests
 from app.infrastructure.controllers.webhook_controller import register_webhook_routes
 from app.infrastructure.persistence_adapters.request_repository import RequestRepository
 from app.infrastructure.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
-from app.use_cases.list_pending_requests import ListPendingRequestsUseCase
-from app.use_cases.manage_request_action import ManageRequestActionUseCase
+from app.application.use_cases.list_pending_requests import ListPendingRequestsUseCase
+from app.application.use_cases.manage_request_action import ManageRequestActionUseCase
 from app.infrastructure.web_adapters.groq_adapter import GroqAdapter
-from app.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
+from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)

@@ -1,5 +1,5 @@
 import logging
-from app.dtos.dtos import IncomingMessageDTO
+from app.application.dtos.dtos import IncomingMessageDTO
 
 def map_whatsapp_json_to_dto(body: dict) -> IncomingMessageDTO:
     """

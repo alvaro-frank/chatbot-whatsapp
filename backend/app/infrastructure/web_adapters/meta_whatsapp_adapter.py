@@ -1,6 +1,6 @@
 import requests
 import logging
-from app.domain.interfaces import WhatsAppProvider, NotificationDeliveryError
+from app.domain.ports import WhatsAppProvider, NotificationDeliveryError
 import httpx
 
 class MetaWhatsAppAdapter(WhatsAppProvider):

@@ -1,4 +1,4 @@
-from app.commands.simulation_commands import AlterarNifCommand, AlterarMoradaCommand, DefaultSimulationCommand
+from app.application.commands.simulation_commands import AlterarNifCommand, AlterarMoradaCommand, DefaultSimulationCommand
 
 class CommandFactory:
     """
