@@ -34,7 +34,8 @@ class RequestRepository(IRequestRepository):
             user_input=orm_model.user_input,
             field_value=orm_model.field_value,
             generated_response=orm_model.generated_response,
-            status=RequestStatus(orm_model.status), # Converte string de volta para Enum
+            simulation_data=orm_model.simulation_data,
+            status=RequestStatus(orm_model.status),
             created_at=orm_model.created_at,
             processed_at=orm_model.processed_at
         )
@@ -59,7 +60,8 @@ class RequestRepository(IRequestRepository):
         orm_model.user_input = domain_entity.user_input
         orm_model.field_value = domain_entity.field_value
         orm_model.generated_response = domain_entity.generated_response
-        orm_model.status = domain_entity.status.value # Extrai a string do Enum
+        orm_model.status = domain_entity.status.value
+        orm_model.simulation_data = domain_entity.simulation_data
         orm_model.created_at = domain_entity.created_at
         orm_model.processed_at = domain_entity.processed_at
         
