@@ -1,6 +1,6 @@
 // Interface representing a service request in the application
 export interface ServiceRequest {
-  id: number;
+  id: string;
   customer: string;
   wa_id: string;
   intent: string;

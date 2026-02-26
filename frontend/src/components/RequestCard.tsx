@@ -4,9 +4,9 @@ import type { ServiceRequest } from '../domain/models/ServiceRequest';
 interface RequestCardProps {
     request: ServiceRequest;
     isProcessing: boolean;
-    onApprove: (id: number, text: string) => void;
-    onReject: (id: number, text: string) => void;
-    onTextChange: (id: number, text: string) => void;
+    onApprove: (id: string, text: string) => void;
+    onReject: (id: string, text: string) => void;
+    onTextChange: (id: string, text: string) => void;
 }
 
 export function RequestCard({ request, isProcessing, onApprove, onReject, onTextChange }: RequestCardProps) {

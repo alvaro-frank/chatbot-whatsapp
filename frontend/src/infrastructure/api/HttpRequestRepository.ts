@@ -8,7 +8,7 @@ export class HttpRequestRepository implements IRequestRepository {
     return res.json();
   }
 
-  async approveRequest(id: number, text: string): Promise<void> {
+  async approveRequest(id: string, text: string): Promise<void> {
     const res = await fetch(`/admin/requests/${id}/approve`, { //
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -17,7 +17,7 @@ export class HttpRequestRepository implements IRequestRepository {
     if (!res.ok) throw new Error("Erro na aprovação.");
   }
 
-  async rejectRequest(id: number, text: string): Promise<void> {
+  async rejectRequest(id: string, text: string): Promise<void> {
     const res = await fetch(`/admin/requests/${id}/reject`, { //
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

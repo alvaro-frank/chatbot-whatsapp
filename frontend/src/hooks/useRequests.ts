@@ -5,7 +5,7 @@ import { useRepository } from '../infrastructure/context/RepositoryContext';
 export function useRequests() {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [processingId, setProcessingId] = useState<number | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     const repo = useRepository();
 
@@ -27,7 +27,7 @@ export function useRequests() {
         return () => clearInterval(interval);
     }, [fetchRequests]);
 
-    const handleApprove = async (id: number, text: string) => {
+    const handleApprove = async (id: string, text: string) => {
         if (!confirm("Confirmar aprovação?")) return;
         setProcessingId(id);
         try {
@@ -40,7 +40,7 @@ export function useRequests() {
         }
     };
 
-    const handleReject = async (id: number, text: string) => {
+    const handleReject = async (id: string, text: string) => {
         if (!confirm("Tem a certeza que deseja rejeitar? O cliente será notificado.")) return;
         setProcessingId(id);
         try {
@@ -53,7 +53,7 @@ export function useRequests() {
         }
     };
 
-    const handleUpdateLocalText = (id: number, newText: string) => {
+    const handleUpdateLocalText = (id: string, newText: string) => {
         setRequests(prev => prev.map(req =>
             req.id === id ? { ...req, response_text: newText } : req
         ));
