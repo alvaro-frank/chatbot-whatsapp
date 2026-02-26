@@ -3,9 +3,9 @@ from flask_cors import CORS
 from app.config import load_configurations, configure_logging
 from app.infrastructure.database import db
 import os
-from app.infrastructure.adapters.controllers.manage_request_action_controller import register_manage_requests_routes
-from app.infrastructure.adapters.controllers.list_pending_requests_controller import register_pending_requests_routes
-from app.infrastructure.adapters.controllers.process_incoming_message_controller import incoming_message_routes
+from app.controllers.manage_request_action_controller import register_manage_requests_routes
+from app.controllers.list_pending_requests_controller import register_pending_requests_routes
+from app.controllers.process_incoming_message_controller import incoming_message_routes
 from app.infrastructure.adapters.persistence_adapters.request_repository import RequestRepository
 from app.infrastructure.adapters.web_adapters.meta_whatsapp_adapter import MetaWhatsAppAdapter
 from app.application.use_cases.list_pending_requests import ListPendingRequestsUseCase
