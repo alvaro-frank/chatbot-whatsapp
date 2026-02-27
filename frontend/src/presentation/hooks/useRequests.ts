@@ -1,10 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ServiceRequest } from '../../domain/models/ServiceRequest';
 import type { ManageRequest } from '../../domain/models/ManageRequest';
-import { useRepository } from '../../presentation/context/RepositoryContext';
-import { GetPendingRequestsUseCase } from '../../application/GetPendingRequestsUseCase';
-import { ApproveRequestUseCase } from '../../application/ApproveRequestUseCase';
-import { RejectRequestUseCase } from '../../application/RejectRequestUseCase';
 import { useUseCases } from '../context/UseCaseContext';
 
 export function useRequests() {
@@ -12,8 +8,6 @@ export function useRequests() {
     const [isLoading, setIsLoading] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<ManageRequest | null>(null);
-
-    const repo = useRepository();
 
     const { getPendingRequests, approveRequest, rejectRequest } = useUseCases();
 
