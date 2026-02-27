@@ -5,6 +5,7 @@ import { useRepository } from '../../presentation/context/RepositoryContext';
 import { GetPendingRequestsUseCase } from '../../application/GetPendingRequestsUseCase';
 import { ApproveRequestUseCase } from '../../application/ApproveRequestUseCase';
 import { RejectRequestUseCase } from '../../application/RejectRequestUseCase';
+import { useUseCases } from '../context/UseCaseContext';
 
 export function useRequests() {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -14,21 +15,19 @@ export function useRequests() {
 
     const repo = useRepository();
 
-    const getRequestsUC = useMemo(() => new GetPendingRequestsUseCase(repo), [repo]);
-    const approveUC = useMemo(() => new ApproveRequestUseCase(repo), [repo]);
-    const rejectUC = useMemo(() => new RejectRequestUseCase(repo), [repo]);
+    const { getPendingRequests, approveRequest, rejectRequest } = useUseCases();
 
     const fetchRequests = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getRequestsUC.execute();
+            const data = await getPendingRequests.execute();
             setRequests(data);
         } catch (error) {
             console.error("Erro ao carregar pedidos:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [getRequestsUC]);
+    }, [getPendingRequests]);
 
     useEffect(() => {
         fetchRequests();
@@ -39,7 +38,7 @@ export function useRequests() {
     const handleApprove = async (id: string, text: string) => {
         setProcessingId(id);
         try {
-            const result = await approveUC.execute(id, text);
+            const result = await approveRequest.execute(id, text);
             setRequests(prev => prev.filter(r => r.id !== id));
             setFeedback(result);
             setTimeout(() => setFeedback(null), 5000);
@@ -53,7 +52,7 @@ export function useRequests() {
     const handleReject = async (id: string, text: string) => {
         setProcessingId(id);
         try {
-            const result = await rejectUC.execute(id, text);
+            const result = await rejectRequest.execute(id, text);
             setRequests(prev => prev.filter(r => r.id !== id));
             setFeedback(result);
             setTimeout(() => setFeedback(null), 5000);
