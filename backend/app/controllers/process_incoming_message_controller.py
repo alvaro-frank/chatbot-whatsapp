@@ -2,9 +2,7 @@ import logging
 from flask import Blueprint, request, jsonify, current_app
 from app.infrastructure.middleware.security import signature_required
 # Mappers
-from app.infrastructure.mappers.whatsapp_json_dto_mapper import map_whatsapp_json_to_dto
-# Domain
-from app.domain.entities import ReceivedMessage
+from app.infrastructure.mappers.whatsapp_json_result_mapper import map_whatsapp_json_to_result
 # Use Cases
 from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
@@ -66,17 +64,11 @@ class ProcessIncomingMessageController:
         body = request.get_json()
         
         try:
-            message_dto = map_whatsapp_json_to_dto(body)
+            message_dto = map_whatsapp_json_to_result(body)
             if not message_dto:
                 return jsonify({"status": "ignored"}), 200
-
-            domain_message = ReceivedMessage(
-                sender_id=message_dto.wa_id,
-                sender_name=message_dto.sender_name,
-                content=message_dto.message_body
-            )
             
-            self.use_case.execute(domain_message)
+            self.use_case.execute(message_dto)
             
         except Exception as e:
             logging.error(f"Error handling webhook: {e}", exc_info=True)

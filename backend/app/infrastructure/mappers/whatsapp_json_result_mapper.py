@@ -1,8 +1,8 @@
 import logging
-from app.application.dtos.dtos import IncomingMessageDTO
+from app.application.dtos.commands import IncomingMessageDTO
 from typing import Dict
 
-def map_whatsapp_json_to_dto(body: Dict) -> IncomingMessageDTO:
+def map_whatsapp_json_to_result(body: Dict) -> IncomingMessageDTO:
     """
     Translates Meta's complex JSON structure into a clean IncomingMessageDTO.
 

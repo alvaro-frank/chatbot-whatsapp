@@ -3,6 +3,7 @@ from app.domain.ports import LLMProvider, IRequestRepository
 from app.domain.entities import MessageAnalysis
 from app.domain.entities import Request, ReceivedMessage
 from app.application.commands.command_factory import CommandFactory
+from app.application.dtos.commands import IncomingMessageDTO
 
 class ProcessIncomingMessageUseCase:
     """
@@ -23,7 +24,7 @@ class ProcessIncomingMessageUseCase:
         self.llm_provider = llm_provider
         self.repo = repo
 
-    def execute(self, message: ReceivedMessage) -> None:
+    def execute(self, message_dto: IncomingMessageDTO) -> None:
         """
         Orchestrates the processing pipeline for a single received message.
 
@@ -39,8 +40,14 @@ class ProcessIncomingMessageUseCase:
         Raises:
             Exception: Re-raises any exceptions encountered during analysis or persistence for upper-layer handling.
         """
-        logging.info(f"Processing message from: {message.sender_id}")
+        logging.info(f"Processing message from: {message_dto.wa_id}")
 
+        message = ReceivedMessage(
+            sender_id=message_dto.wa_id,
+            sender_name=message_dto.sender_name,
+            content=message_dto.message_body
+        )
+        
         try:
             analysis: MessageAnalysis = self.llm_provider.analyze_message(
                 message_body=message.content,
