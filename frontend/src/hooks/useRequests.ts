@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ServiceRequest } from '../domain/models/ServiceRequest';
+import type { ManageRequest } from '../domain/models/ManageRequest';
 import { useRepository } from '../infrastructure/context/RepositoryContext';
 
 export function useRequests() {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState<ManageRequest | null>(null);
 
     const repo = useRepository();
 
@@ -28,13 +30,16 @@ export function useRequests() {
     }, [fetchRequests]);
 
     const handleApprove = async (id: string, text: string) => {
-        if (!confirm("Confirmar aprovação?")) return;
         setProcessingId(id);
         try {
-            await repo.approveRequest(id, text);
+            const result = await repo.approveRequest(id, text);
             setRequests(prev => prev.filter(r => r.id !== id));
+            
+            setFeedback(result);
+            
+            setTimeout(() => setFeedback(null), 5000);
         } catch (error) {
-            alert("Erro ao aprovar");
+            console.error(error);
         } finally {
             setProcessingId(null);
         }
@@ -67,6 +72,8 @@ export function useRequests() {
         handleApprove,
         handleReject,
         handleUpdateLocalText,
-        reload: fetchRequests
+        reload: fetchRequests,
+        feedback,
+        setFeedback
     };
 }
