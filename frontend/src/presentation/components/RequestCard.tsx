@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ServiceRequest } from '../domain/models/ServiceRequest';
+import type { ServiceRequest } from '../../domain/models/ServiceRequest';
 
 interface RequestCardProps {
     request: ServiceRequest;
@@ -18,7 +18,6 @@ export function RequestCard({ request, isProcessing, onApprove, onReject, onText
         <div className={`flip-card ${isFlipped ? 'is-flipped' : ''}`} onClick={handleFlip}>
             <div className="flip-card-inner">
                 
-                {/* FACE FRONTAL */}
                 <div className="flip-card-front request-card" onClick={(e) => e.stopPropagation()}>
                     <div className="card-header" onClick={handleFlip} style={{ cursor: 'help' }}>
                         <div>
@@ -28,7 +27,6 @@ export function RequestCard({ request, isProcessing, onApprove, onReject, onText
                         <span className="message-date">{request.date}</span>
                     </div>
 
-                    {/* READICIONADO: Secção de Intent */}
                     <div className="meta-data">
                         <span className="badge badge-intent">
                             Operação: {request.intent.replace(/_/g, ' ')}
@@ -76,7 +74,6 @@ export function RequestCard({ request, isProcessing, onApprove, onReject, onText
                     </div>
                 </div>
 
-                {/* FACE TRASEIRA (Terminal) */}
                 <div className="flip-card-back">
                     <div className="terminal-header">
                         <span>DEBUG_VIEW.exe</span>

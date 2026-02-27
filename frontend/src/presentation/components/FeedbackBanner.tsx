@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, AlertCircle, X, Clock } from 'lucide-react';
-import type { ManageRequest } from '../domain/models/ManageRequest';
+import type { ManageRequest } from '../../domain/models/ManageRequest';
 
 interface FeedbackBannerProps {
   feedback: ManageRequest;

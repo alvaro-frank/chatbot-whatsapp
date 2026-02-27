@@ -1,7 +1,7 @@
 import './App.css';
-import { useRequests } from './hooks/useRequests';
-import { RequestCard } from './components/RequestCard';
-import { FeedbackBanner } from './components/FeedbackBanner';
+import { useRequests } from './presentation/hooks/useRequests';
+import { RequestCard } from './presentation/components/RequestCard';
+import { FeedbackBanner } from './presentation/components/FeedbackBanner';
 
 function App() {
   const {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import type { IRequestRepository } from '../../domain/repositories/IRequestRepository';
-import { HttpRequestRepository } from '../api/HttpRequestRepository';
+import { HttpRequestRepository } from '../../infrastructure/adapters/HttpRequestRepository';
 
 const RepositoryContext = createContext<IRequestRepository | null>(null);
 

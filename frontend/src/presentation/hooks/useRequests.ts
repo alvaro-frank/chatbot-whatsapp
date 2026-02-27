@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { ServiceRequest } from '../domain/models/ServiceRequest';
-import type { ManageRequest } from '../domain/models/ManageRequest';
-import { useRepository } from '../infrastructure/context/RepositoryContext';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import type { ServiceRequest } from '../../domain/models/ServiceRequest';
+import type { ManageRequest } from '../../domain/models/ManageRequest';
+import { useRepository } from '../../presentation/context/RepositoryContext';
+import { GetPendingRequestsUseCase } from '../../application/GetPendingRequestsUseCase';
+import { ApproveRequestUseCase } from '../../application/ApproveRequestUseCase';
+import { RejectRequestUseCase } from '../../application/RejectRequestUseCase';
 
 export function useRequests() {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -11,17 +14,21 @@ export function useRequests() {
 
     const repo = useRepository();
 
+    const getRequestsUC = useMemo(() => new GetPendingRequestsUseCase(repo), [repo]);
+    const approveUC = useMemo(() => new ApproveRequestUseCase(repo), [repo]);
+    const rejectUC = useMemo(() => new RejectRequestUseCase(repo), [repo]);
+
     const fetchRequests = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await repo.getPendingRequests();
+            const data = await getRequestsUC.execute();
             setRequests(data);
         } catch (error) {
-            console.error("Erro ao carregar:", error);
+            console.error("Erro ao carregar pedidos:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [repo]);
+    }, [getRequestsUC]);
 
     useEffect(() => {
         fetchRequests();
@@ -32,27 +39,26 @@ export function useRequests() {
     const handleApprove = async (id: string, text: string) => {
         setProcessingId(id);
         try {
-            const result = await repo.approveRequest(id, text);
+            const result = await approveUC.execute(id, text);
             setRequests(prev => prev.filter(r => r.id !== id));
-            
             setFeedback(result);
-            
             setTimeout(() => setFeedback(null), 5000);
         } catch (error) {
-            console.error(error);
+            console.error("Erro na aprovação:", error);
         } finally {
             setProcessingId(null);
         }
     };
 
     const handleReject = async (id: string, text: string) => {
-        if (!confirm("Tem a certeza que deseja rejeitar? O cliente será notificado.")) return;
         setProcessingId(id);
         try {
-            await repo.rejectRequest(id, text);
+            const result = await rejectUC.execute(id, text);
             setRequests(prev => prev.filter(r => r.id !== id));
+            setFeedback(result);
+            setTimeout(() => setFeedback(null), 5000);
         } catch (error) {
-            alert("Erro ao rejeitar.");
+            console.error("Erro na rejeição:", error);
         } finally {
             setProcessingId(null);
         }
@@ -60,7 +66,7 @@ export function useRequests() {
 
     const handleUpdateLocalText = (id: string, newText: string) => {
         setRequests(prev => prev.map(req =>
-            req.id === id ? { ...req, response_text: newText } : req
+            req.id === id ? { ...req, generated_response: newText } : req
         ));
     };
 
@@ -68,12 +74,10 @@ export function useRequests() {
         requests,
         isLoading,
         processingId,
-        fetchRequests,
+        feedback,
+        setFeedback,
         handleApprove,
         handleReject,
-        handleUpdateLocalText,
-        reload: fetchRequests,
-        feedback,
-        setFeedback
+        handleUpdateLocalText
     };
 }
