@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 
-class IncomingMessageDTO(BaseModel):
+class IncomingMessageCommand(BaseModel):
     """
     Data Transfer Object representing a validated incoming WhatsApp message.
 

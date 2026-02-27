@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.application.dtos.results import AIAnalysisDTO
+from app.application.dtos.results import AIAnalysisResult
 import uuid
 from typing import Optional, List
 from app.domain.entities import Request, MessageAnalysis

@@ -1,10 +1,10 @@
 import logging
-from app.application.dtos.commands import IncomingMessageDTO
+from app.application.dtos.commands import IncomingMessageCommand
 from typing import Dict
 
-def map_whatsapp_json_to_result(body: Dict) -> IncomingMessageDTO:
+def map_whatsapp_json_to_result(body: Dict) -> IncomingMessageCommand:
     """
-    Translates Meta's complex JSON structure into a clean IncomingMessageDTO.
+    Translates Meta's complex JSON structure into a clean IncomingMessageCommand.
 
     This function acts as a Data Mapper, specifically handling the Webhook 
     notification format from the Meta Graph API. It extracts identity and 
@@ -14,7 +14,7 @@ def map_whatsapp_json_to_result(body: Dict) -> IncomingMessageDTO:
         body (Dict): The raw JSON payload received from the WhatsApp Webhook.
 
     Returns:
-        IncomingMessageDTO: A validated object containing sender info and text.
+        IncomingMessageCommand: A validated object containing sender info and text.
 
     Raises:
         ValueError: If the required keys (wa_id, name, or body) are missing or 
@@ -33,7 +33,7 @@ def map_whatsapp_json_to_result(body: Dict) -> IncomingMessageDTO:
             logging.info(f"Unsupported message type: {message.get('type')}")
             return None
 
-        return IncomingMessageDTO(
+        return IncomingMessageCommand(
             wa_id=contact["wa_id"],
             sender_name=contact["profile"]["name"],
             message_body=message["text"]["body"]

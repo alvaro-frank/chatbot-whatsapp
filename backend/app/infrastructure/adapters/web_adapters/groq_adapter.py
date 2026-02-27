@@ -2,7 +2,7 @@ import json
 import logging
 from groq import Groq
 from app.domain.ports import LLMProvider
-from app.application.dtos.results import AIAnalysisDTO
+from app.application.dtos.results import AIAnalysisResult
 from app.domain.entities import MessageAnalysis
 
 class GroqAdapter(LLMProvider):
@@ -36,7 +36,7 @@ class GroqAdapter(LLMProvider):
         This method orchestrates the full analysis flow:
         1. Generates a contextual system prompt.
         2. Calls the Groq Chat Completion API with JSON mode enabled.
-        3. Validates the raw JSON output against the AIAnalysisDTO schema.
+        3. Validates the raw JSON output against the AIAnalysisResult schema.
         4. Maps the validated DTO to a Domain Entity (MessageAnalysis).
 
         Args:
@@ -64,7 +64,7 @@ class GroqAdapter(LLMProvider):
             
             response_content = completion.choices[0].message.content
             
-            validated_dto = AIAnalysisDTO.model_validate_json(response_content)
+            validated_dto = AIAnalysisResult.model_validate_json(response_content)
             
             return MessageAnalysis(
                 detected_language=validated_dto.detected_language,

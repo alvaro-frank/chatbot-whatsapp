@@ -3,7 +3,7 @@ from app.domain.ports import LLMProvider, IRequestRepository
 from app.domain.entities import MessageAnalysis
 from app.domain.entities import Request, ReceivedMessage
 from app.application.commands.command_factory import CommandFactory
-from app.application.dtos.commands import IncomingMessageDTO
+from app.application.dtos.commands import IncomingMessageCommand
 
 class ProcessIncomingMessageUseCase:
     """
@@ -24,7 +24,7 @@ class ProcessIncomingMessageUseCase:
         self.llm_provider = llm_provider
         self.repo = repo
 
-    def execute(self, message_dto: IncomingMessageDTO) -> None:
+    def execute(self, message_dto: IncomingMessageCommand) -> None:
         """
         Orchestrates the processing pipeline for a single received message.
 
