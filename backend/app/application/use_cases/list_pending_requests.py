@@ -1,7 +1,6 @@
 import logging
 from app.domain.ports import IRequestRepository
-from app.application.commands.command_factory import CommandFactory
-from app.application.dtos.results import RequestResult
+from app.application.dtos.results import PendingRequestResult
 from typing import List
 
 class ListPendingRequestsUseCase:
@@ -21,7 +20,7 @@ class ListPendingRequestsUseCase:
         """
         self.repo = repo
 
-    def execute(self) -> List[RequestResult]:
+    def execute(self) -> List[PendingRequestResult]:
         """
         Retrieves all pending requests and transforms them into DTOs with simulated effects.
 
@@ -30,7 +29,7 @@ class ListPendingRequestsUseCase:
         and packages the result for frontend consumption.
 
         Returns:
-            List[RequestResult]: A collection of enriched data objects for the dashboard.
+            List[PendingRequestResult]: A collection of enriched data objects for the dashboard.
         """
         logging.info("Listing all pending requests for the dashboard.")
 
@@ -39,7 +38,7 @@ class ListPendingRequestsUseCase:
         output = []
         for r in requests:
             try:
-                output.append(RequestResult(
+                output.append(PendingRequestResult(
                     id=str(r.uid),
                     customer=r.customer_name,
                     wa_id=r.wa_id,

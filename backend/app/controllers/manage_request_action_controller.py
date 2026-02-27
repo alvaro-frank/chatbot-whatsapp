@@ -3,6 +3,8 @@ from flask import Blueprint, request, jsonify
 from app.domain.ports import NotificationDeliveryError
 # Use Cases
 from app.application.use_cases.manage_request_action import ManageRequestActionUseCase
+# DTOs
+from app.application.dtos.commands import ManageRequestCommand
 
 manage_requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
 
@@ -29,17 +31,27 @@ class ManageRequestActionController:
         
         Expects an optional 'response_text' in the JSON body to override the 
         AI-generated default message.
+        
+        Args:
+        
+        
+        Raises:
+        
 
         Returns:
-            tuple: JSON response with status and HTTP code (200, 400, 502, or 500).
+            
         """
         data = request.get_json() or {}
-        override_text = data.get("response_text")
+        
+        command = ManageRequestCommand(
+            request_id=request_id,
+            override_text=data.get("response_text")
+        )
 
         try:
-            self.manage_use_case.approve(request_id, override_text)
+            result = self.manage_use_case.approve(command)
             
-            return jsonify({"status": "success", "message": "Request approved successfully"}), 200
+            return jsonify(result.model_dump()), 200
         except ValueError as e:
             return jsonify({"status": "error", "message": str(e)}), 400
         except NotificationDeliveryError as e:
@@ -53,17 +65,27 @@ class ManageRequestActionController:
         Endpoint to reject a specific request and notify the customer.
         
         Updates the request status to REJECTED and dispatches a declination message.
+        
+        Args:
+        
+        
+        Raises:
+
 
         Returns:
-            tuple: JSON response with status and HTTP code (200, 400, 502, or 500).
+            
         """
         data = request.get_json() or {}
-        override_text = data.get("response_text")
+        
+        command = ManageRequestCommand(
+            request_id=request_id,
+            override_text=data.get("response_text")
+        )
 
         try:
-            self.manage_use_case.reject(request_id, override_text)
+            result = self.manage_use_case.reject(command)
             
-            return jsonify({"status": "success", "message": "Pedido rejeitado"}), 200
+            return jsonify(result.model_dump()), 200
             
         except ValueError as e:
             return jsonify({"status": "error", "message": str(e)}), 400
