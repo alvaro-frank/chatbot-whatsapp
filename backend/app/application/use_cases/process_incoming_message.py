@@ -1,7 +1,7 @@
 import logging
-from app.domain.ports import LLMProvider, IRequestRepository
-from app.domain.entities import MessageAnalysis
-from app.domain.entities import Request, ReceivedMessage
+from app.domain.ports.ports import LLMProvider, IRequestRepository
+from app.domain.entities.entities import MessageAnalysis
+from app.domain.entities.entities import Request, ReceivedMessage
 from app.application.commands.command_factory import CommandFactory
 from app.application.dtos.commands import IncomingMessageCommand
 

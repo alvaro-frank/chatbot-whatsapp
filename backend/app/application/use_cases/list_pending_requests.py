@@ -1,5 +1,5 @@
 import logging
-from app.domain.ports import IRequestRepository
+from app.domain.ports.ports import IRequestRepository
 from app.application.dtos.results import PendingRequestResult
 from typing import List
 

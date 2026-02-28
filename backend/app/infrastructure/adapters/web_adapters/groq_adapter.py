@@ -1,9 +1,9 @@
 import json
 import logging
 from groq import Groq
-from app.domain.ports import LLMProvider
+from app.domain.ports.ports import LLMProvider
 from app.application.dtos.results import AIAnalysisResult
-from app.domain.entities import MessageAnalysis
+from app.domain.entities.entities import MessageAnalysis
 
 class GroqAdapter(LLMProvider):
     """
