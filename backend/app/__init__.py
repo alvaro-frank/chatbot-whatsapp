@@ -13,17 +13,21 @@ from app.application.use_cases.manage_request_action import ManageRequestActionU
 from app.infrastructure.adapters.web_adapters.groq_adapter import GroqAdapter
 from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
-    load_configurations(app)
+    if test_config:
+        app.config.update(test_config)
+    else:
+        load_configurations(app)
+    
     configure_logging()
     
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI')
     if db_uri and db_uri.startswith('sqlite:///'):
         db_path = db_uri.replace('sqlite:///', '')
         db_dir = os.path.dirname(db_path)
-        if not os.path.exists(db_dir):
+        if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir)
 
     CORS(app)
