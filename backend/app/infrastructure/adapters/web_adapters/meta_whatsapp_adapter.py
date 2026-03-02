@@ -1,9 +1,9 @@
 import requests
 import logging
-from app.domain.ports.ports import WhatsAppProvider, NotificationDeliveryError
+from app.domain.ports.ports import WhatsAppPort, NotificationDeliveryError
 import httpx
 
-class MetaWhatsAppAdapter(WhatsAppProvider):
+class MetaWhatsAppAdapter(WhatsAppPort):
     """
     Adapter for Meta's Cloud API (Graph API).
     

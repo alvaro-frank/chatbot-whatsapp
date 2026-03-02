@@ -1,6 +1,6 @@
 import logging
 import uuid
-from app.domain.ports.ports import WhatsAppProvider, IRequestRepository
+from app.domain.ports.ports import WhatsAppPort, IRequestRepository
 from app.application.dtos.commands import ManageRequestCommand
 from app.application.dtos.results import ManageRequestResult
 from app.domain.entities.entities import Request
@@ -12,16 +12,16 @@ class ManageRequestActionUseCase:
     This service orchestrates the transition of requests from PENDING to final 
     states (APPROVED/REJECTED) and manages the subsequent communication via WhatsApp.
     """
-    def __init__(self, repo: IRequestRepository, whatsapp_provider: WhatsAppProvider):
+    def __init__(self, repo: IRequestRepository, whatsapp_Port: WhatsAppPort):
         """
         Initializes the use case with persistence and communication dependencies.
         
         Args:
             repo (IRequestRepository): Repository to fetch and update Request entities.
-            whatsapp_provider (WhatsAppProvider): Provider to dispatch final notifications.
+            whatsapp_Port (WhatsAppPort): Port to dispatch final notifications.
         """
         self.repo = repo
-        self.whatsapp_provider = whatsapp_provider
+        self.whatsapp_Port = whatsapp_Port
 
     def approve(self, command: ManageRequestCommand) -> ManageRequestResult:
         """
@@ -48,7 +48,7 @@ class ManageRequestActionUseCase:
         self.repo.save(req)
         
         try:
-            self.whatsapp_provider.send_text_message(req.wa_id, final_text)
+            self.whatsapp_Port.send_text_message(req.wa_id, final_text)
         except Exception as e:
             logging.error(f"Error sending WhatsApp message on request {req.uid} approval: {e}")
         
@@ -81,7 +81,7 @@ class ManageRequestActionUseCase:
         final_text = command.override_text or req.generated_response
 
         try:
-            self.whatsapp_provider.send_text_message(req.wa_id, final_text)
+            self.whatsapp_Port.send_text_message(req.wa_id, final_text)
         except Exception as e:
             logging.error(f"Error sending WhatsApp message on request {req.uid} rejection: {e}")
 

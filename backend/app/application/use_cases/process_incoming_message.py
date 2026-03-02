@@ -1,5 +1,5 @@
 import logging
-from app.domain.ports.ports import LLMProvider, IRequestRepository
+from app.domain.ports.ports import LLMPort, IRequestRepository
 from app.domain.entities.entities import MessageAnalysis
 from app.domain.entities.entities import Request, ReceivedMessage
 from app.application.commands.command_factory import CommandFactory
@@ -9,19 +9,19 @@ class ProcessIncomingMessageUseCase:
     """
     Application Service responsible for handling new incoming messages.
     
-    This Use Case orchestrates the interaction between the AI (LLMProvider) 
+    This Use Case orchestrates the interaction between the AI (LLMPort) 
     and the persistence layer (Repository). It determines if a message 
     requires administrative action based on the identified intent.
     """
-    def __init__(self, llm_provider: LLMProvider, repo: IRequestRepository):
+    def __init__(self, llm_Port: LLMPort, repo: IRequestRepository):
         """
         Initializes the use case with necessary infrastructure abstractions.
         
         Args:
-            llm_provider (LLMProvider): The adapter used to analyze natural language.
+            llm_Port (LLMPort): The adapter used to analyze natural language.
             repo (IRequestRepository): The repository used to store validated requests.
         """
-        self.llm_provider = llm_provider
+        self.llm_Port = llm_Port
         self.repo = repo
 
     def execute(self, message_dto: IncomingMessageCommand) -> None:
@@ -49,7 +49,7 @@ class ProcessIncomingMessageUseCase:
         )
         
         try:
-            analysis: MessageAnalysis = self.llm_provider.analyze_message(
+            analysis: MessageAnalysis = self.llm_Port.analyze_message(
                 message_body=message.content,
                 user_name=message.first_name
             )

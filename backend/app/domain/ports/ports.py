@@ -9,11 +9,11 @@ class NotificationDeliveryError(Exception):
     Exception raised when a message fails to reach its destination.
     
     This error typically encapsulates network failures, API rate limits, 
-    or authentication issues with external messaging providers.
+    or authentication issues with external messaging Ports.
     """
     pass
 
-class LLMProvider(ABC):
+class LLMPort(ABC):
     """
     Contract for Large Language Model (LLM) implementations.
     
@@ -36,13 +36,13 @@ class LLMProvider(ABC):
         """
         pass
 
-class WhatsAppProvider(ABC):
+class WhatsAppPort(ABC):
     """
-    Contract for Messaging Transport providers.
+    Contract for Messaging Transport Ports.
     
     This interface abstracts the communication layer. It decouples the domain 
     from specific API protocols (like Meta's Graph API), allowing the system 
-    to switch providers without affecting business orchestration.
+    to switch Ports without affecting business orchestration.
     """
 
     @abstractmethod
@@ -55,7 +55,7 @@ class WhatsAppProvider(ABC):
             message_text (str): The body of the message to be delivered.
             
         Raises:
-            NotificationDeliveryError: If the provider fails to dispatch the message.
+            NotificationDeliveryError: If the Port fails to dispatch the message.
         """
         pass
     

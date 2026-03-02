@@ -1,11 +1,11 @@
 import json
 import logging
 from groq import Groq
-from app.domain.ports.ports import LLMProvider
+from app.domain.ports.ports import LLMPort
 from app.application.dtos.results import AIAnalysisResult
 from app.domain.entities.entities import MessageAnalysis
 
-class GroqAdapter(LLMProvider):
+class GroqAdapter(LLMPort):
     """
     Adapter implementation for the Groq Cloud API.
     

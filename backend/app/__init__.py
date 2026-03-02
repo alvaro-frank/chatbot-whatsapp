@@ -41,10 +41,10 @@ def create_app():
 
         # 2. Use Cases
         list_uc = ListPendingRequestsUseCase(repo=repo)
-        manage_uc = ManageRequestActionUseCase(repo=repo, whatsapp_provider=whatsapp)
+        manage_uc = ManageRequestActionUseCase(repo=repo, whatsapp_Port=whatsapp)
         process_uc = ProcessIncomingMessageUseCase(
             repo=repo, 
-            llm_provider=groq
+            llm_Port=groq
         )
         
         # 3. Ingoing Adapters (Controllers)
