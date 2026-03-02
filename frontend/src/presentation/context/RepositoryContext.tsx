@@ -4,7 +4,7 @@ import { HttpRequestRepository } from '../../infrastructure/adapters/HttpRequest
 
 const RepositoryContext = createContext<IRequestRepository | null>(null);
 
-export const RepositoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const RepositoryPort: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const repository = new HttpRequestRepository();
   
   return (
@@ -17,7 +17,7 @@ export const RepositoryProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 export const useRepository = () => {
   const context = useContext(RepositoryContext);
   if (!context) {
-    throw new Error("useRepository must be used within a RepositoryProvider");
+    throw new Error("useRepository must be used within a RepositoryPort");
   }
   return context;
 };

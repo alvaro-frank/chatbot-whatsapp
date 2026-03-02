@@ -7,7 +7,7 @@ import { RejectRequestUseCase } from '../../application/RejectRequestUseCase';
 
 const UseCaseContext = createContext<any>(null);
 
-export const UseCaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UseCasePort: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const repo = useRepository();
 
   const useCases = useMemo(() => ({
