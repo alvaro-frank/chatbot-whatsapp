@@ -59,7 +59,7 @@ export function useRequests() {
 
     const handleUpdateLocalText = (id: string, newText: string) => {
         setRequests(prev => prev.map(req =>
-            req.id === id ? { ...req, generated_response: newText } : req
+            req.id === id ? { ...req, response_text: newText } : req
         ));
     };
 
