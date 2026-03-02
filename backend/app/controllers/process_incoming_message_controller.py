@@ -1,12 +1,10 @@
 import logging
-from flask import Blueprint, request, jsonify, current_app
+from flask import request, jsonify, current_app
 from app.infrastructure.middleware.security import signature_required
 # Mappers
 from app.infrastructure.mappers.whatsapp_json_result_mapper import map_whatsapp_json_to_result
 # Use Cases
 from app.application.use_cases.process_incoming_message import ProcessIncomingMessageUseCase
-
-incoming_message_blueprint = Blueprint("webhook", __name__)
 
 class ProcessIncomingMessageController:
     """
@@ -25,7 +23,7 @@ class ProcessIncomingMessageController:
         """
         self.use_case = use_case
         
-    def verify_webhook():
+    def verify_webhook(self):
         """
         Handles Meta's Webhook verification challenge (Handshake).
         
@@ -86,17 +84,20 @@ def incoming_message_routes(process_use_case):
     Returns:
         Blueprint: The configured Flask blueprint for incoming messages.
     """
+    from flask import Blueprint
+    blueprint = Blueprint("webhook", __name__)
+
     controller = ProcessIncomingMessageController(process_use_case)
     
-    incoming_message_blueprint.add_url_rule(
+    blueprint.add_url_rule(
         "/webhook", 
         view_func=controller.verify_webhook, 
         methods=["GET"]
     )
-    incoming_message_blueprint.add_url_rule(
+    blueprint.add_url_rule(
         "/webhook", 
         view_func=controller.handle_webhook, 
         methods=["POST"]
     )
     
-    return incoming_message_blueprint
+    return blueprint

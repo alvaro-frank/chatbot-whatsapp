@@ -6,8 +6,6 @@ from app.application.use_cases.manage_request_action import ManageRequestActionU
 # DTOs
 from app.application.dtos.commands import ManageRequestCommand
 
-manage_requests_blueprint = Blueprint("requests", __name__, url_prefix="/admin/requests")
-
 class ManageRequestActionController:
     """
     Controller handling administrative actions (Approval/Rejection) on pending requests.
@@ -105,9 +103,12 @@ def register_manage_requests_routes(manage_uc):
     Returns:
         Blueprint: The configured Flask blueprint for request management.
     """
+    from flask import Blueprint
+    blueprint = Blueprint("manage_requests", __name__, url_prefix="/admin/requests")
+    
     controller = ManageRequestActionController(manage_uc)
     
-    manage_requests_blueprint.add_url_rule("/<string:request_id>/approve", "approve_request", controller.approve_request, methods=["POST"])
-    manage_requests_blueprint.add_url_rule("/<string:request_id>/reject", "reject_request", controller.reject_request, methods=["POST"])
+    blueprint.add_url_rule("/<string:request_id>/approve", "approve_request", controller.approve_request, methods=["POST"])
+    blueprint.add_url_rule("/<string:request_id>/reject", "reject_request", controller.reject_request, methods=["POST"])
     
-    return manage_requests_blueprint
+    return blueprint

@@ -1,9 +1,7 @@
 # backend/app/infrastructure/controllers/requests_query_controller.py
 import logging
-from flask import Blueprint, jsonify
+from flask import jsonify
 from app.application.use_cases.list_pending_requests import ListPendingRequestsUseCase
-
-pending_requests_blueprint = Blueprint("requests_query", __name__, url_prefix="/admin/requests")
 
 class ListPendingRequestsController:
     """
@@ -51,6 +49,9 @@ def register_pending_requests_routes(list_uc):
     Returns:
         Blueprint: The configured Flask blueprint for requests query.
     """
+    from flask import Blueprint
+    blueprint = Blueprint("list_requests", __name__, url_prefix="/admin/requests")
+    
     controller = ListPendingRequestsController(list_uc)
-    pending_requests_blueprint.add_url_rule("/", "list_requests", controller.list_requests, methods=["GET"])
-    return pending_requests_blueprint
+    blueprint.add_url_rule("/", "list_requests", controller.list_requests, methods=["GET"])
+    return blueprint
