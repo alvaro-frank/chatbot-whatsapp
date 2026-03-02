@@ -1,6 +1,6 @@
 import logging
 import uuid
-from app.domain.ports.ports import WhatsAppPort, IRequestRepository
+from app.application.ports.ports import WhatsAppPort, IRequestRepository
 from app.application.dtos.commands import ManageRequestCommand
 from app.application.dtos.results import ManageRequestResult
 from app.domain.entities.entities import Request

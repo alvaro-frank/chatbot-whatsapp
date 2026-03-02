@@ -1,7 +1,7 @@
 import json
 import logging
 from groq import Groq
-from app.domain.ports.ports import LLMPort
+from app.application.ports.ports import LLMPort
 from app.application.dtos.results import AIAnalysisResult
 from app.domain.entities.entities import MessageAnalysis
 

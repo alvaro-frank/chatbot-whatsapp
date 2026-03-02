@@ -1,5 +1,5 @@
 import logging
-from app.domain.ports.ports import LLMPort, IRequestRepository
+from app.application.ports.ports import LLMPort, IRequestRepository
 from app.domain.entities.entities import MessageAnalysis
 from app.domain.entities.entities import Request, ReceivedMessage
 from app.application.commands.command_factory import CommandFactory

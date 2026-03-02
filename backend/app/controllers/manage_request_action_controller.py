@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, jsonify
-from app.domain.ports.ports import NotificationDeliveryError
+from app.application.ports.ports import NotificationDeliveryError
 # Use Cases
 from app.application.use_cases.manage_request_action import ManageRequestActionUseCase
 # DTOs
