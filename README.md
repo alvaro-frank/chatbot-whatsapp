@@ -1,5 +1,6 @@
 # Chatbot WhatsApp
 
+![CI Status](https://github.com/alvaro-frank/sentiment_analysis/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-000000?logo=flask&logoColor=white)
 ![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=white)
@@ -270,3 +271,12 @@ Finally, the `WhatsAppService` executes the API call to Meta to deliver the appr
   }
 }
 ```
+
+## ⚙️ CI/CD Pipeline
+
+The project features a robust GitHub Actions CI/CD pipeline designed for high-frequency, reliable delivery:
+
+- **Continuous Integration (Backend)**: Automated testing suite using pytest (Unit and Integration) and code quality enforcement with `flake8`.
+- **Continuous Integration (Frontend)**: Automated build verification, ESLint enforcement, and strict TypeScript type-checking to prevent runtime regressions.
+- **Continuous Deployment (Docker)**: Integrated workflow that builds and pushes multi-stage Docker images for both Backend and Frontend to the GitHub Container Registry (GHCR) upon every merge to `main`.
+- **Security & Secret Management**: Secure injection of API credentials (WhatsApp Meta, Groq, etc.) via GitHub Secrets, ensuring zero-exposure of sensitive data in the codebase.
