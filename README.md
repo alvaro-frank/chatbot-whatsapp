@@ -15,23 +15,42 @@ This project demonstrates a complete automated flow: from receiving messages via
 
 ## 📂 Project Structure
 ```
-├── src/
+├── backend/
 │   ├── app/
-│   │   ├── commands/        # Simulation Logic (Command Pattern)
-│   │   ├── controllers/     # Webhook & API Endpoints
-│   │   ├── services/        # AI, WhatsApp & Request Services
-│   │   ├── models.py        # Database Schema (SQLAlchemy)
-│   │   └── run.py           # Application Entrypoint
-│   ├── frontend/            # React + TypeScript Dashboard
-│   │   ├── src/
-│   │   │   ├── components/  # UI Components (RequestCard)
-│   │   │   └── hooks/       # State Management hooks
-│   │   └── vite.config.ts   # Frontend Build Config
-├── tests/                   # Unit and Integration tests
-├── docker-compose.yml       # Docker services configuration
-├── Dockerfile               # Backend Image definition
-├── requirements.txt         # Python dependencies
-└── README.md                # Project documentation
+│   │   ├── application/        # Application Logic (Use Cases & DTOs)
+│   │   │   ├── commands/       # Command Pattern for simulation logic
+│   │   │   ├── dtos/           # Data Transfer Objects
+|   |   |   ├── ports/          # Adapter Ports
+│   │   │   └── use_cases/      # Business logic orchestrators
+│   │   ├── controllers/        # Input Adapters (HTTP Endpoints)
+│   │   ├── domain/             # Business Core (Pure Entities)
+|   |   |   └── entities/
+│   │   ├── infrastructure/     # Output Adapters and Technical Details
+│   │   │   ├── adapters/       # DB, Groq, and WhatsApp integrations
+│   │   │   ├── mappers/        # External JSON to Domain mappers
+│   │   │   └── middleware/     # Security and signature validation
+│   │   ├── config.py           # Environment configurations
+│   │   └── database.py         # SQLAlchemy initialization
+│   ├── tests/                  # Unit and Integration tests
+│   ├── Dockerfile              # Backend image definition
+│   ├── requirements.txt        # Python dependencies
+│   └── run.py                  # Application entry point
+│
+├── frontend/                   # React + TypeScript Dashboard
+│   ├── src/
+│   │   ├── application/        # Frontend Use Cases
+│   │   ├── domain/             # Domain Interfaces and Models
+│   │   ├── infrastructure/     # HTTP Repositories and Mappers
+│   │   └── presentation/       # UI Layer (React Components & Hooks)
+│   │       ├── components/     # UI Components (RequestCard, etc.)
+│   │       ├── context/        # Dependency Injection via React Context
+│   │       └── hooks/          # State management and UI logic
+│   ├── Dockerfile              # Frontend image definition
+│   └── vite.config.ts          # Vite build configuration
+│
+├── docker-compose.yml          # Docker services orchestration
+├── requirements.txt            # Python dependencies
+└── README.md                   # Project documentation
 ```
 
 ## 🛠️ Setup & Requirements
@@ -100,8 +119,8 @@ Ensure the AI logic, parsers, and service integration are valid.
 # Run all unit tests
 pytest
 
-# Run specific service tests
-pytest tests/unit/test_ai_service.py
+# Run specific use case test
+pytest tests/unit/application/use_cases/test_list_pending_requests.py
 ```
 
 ## 🧠 Methodology
